@@ -1,0 +1,133 @@
+########### Senoren #################
+
+# PV Anlage / Wechselrichter
+#- platform: fronius
+#  resource: !secret fronius_url
+#  monitored_conditions:
+#    - sensor_type: logger_info
+#    - sensor_type: inverter
+#      device: 1
+#    - sensor_type: meter
+#      device: 1
+#    - sensor_type: storage
+#      device: 1
+#    - sensor_type: power_flow
+
+# platform: fronius_inverter
+#  ip_address: !secret fronius_ip
+
+##############################
+##### Template Sesoren #######
+##############################
+#  Anzahl der Domain objekte
+- platform: template
+  sensors:
+    # Meldungen für die Begruessung
+    greeting_time:
+      unique_id: greeting_time
+      friendly_name: Greetings
+      value_template: >
+        {% set day = now().strftime('%A') %}
+        {%- if as_timestamp(now()) | timestamp_custom('%H') | int < 12 -%}
+        {{ ["Morning", "Mornin\'", "Good morning", "Bore da", "Bonjour", "It's a new day", "Hello", "Howdy", "Hi", "Hiya", "Hi there", "Greetings", "Good to see you", "Welcome back", "Looking good today", "Happy " ~day] | random }}
+        {%- elif as_timestamp(now()) | timestamp_custom('%H') | int < 18 -%}
+        {{ ["Afternoon", "Aft\'noon", "Good afternoon", "Prynhawn da", "Hello", "Howdy", "Hi", "Hiya", "Hi there", "Greetings", "Good to see you", "Welcome back", "Looking good today", "Happy " ~day] | random }}
+        {%- else -%}
+        {{ ["Evening", "Evenin\'", "Noswaith dda", "Bonsoir", "Hello", "Howdy", "Hi", "Hiya", "Hi there", "Greetings", "Welcome back", "Looking good today", "Happy " ~day] | random }}
+        {%- endif -%}
+- platform: template
+  sensors:
+    entfernung_matthias_gla:
+      unique_id: entfernung_matthias_gla
+      friendly_name: 'Entfernung Matthias zum GLA'
+      unit_of_measurement: 'km'
+      value_template: >
+        {% set lat1 = states.device_tracker.bb_sp_219_e_device_tracker.attributes.latitude %}
+        {% set lon1 = states.device_tracker.bb_sp_219_e_device_tracker.attributes.longitude %}
+        {% set lat2 = states.device_tracker.s21_jt4yf9t106.attributes.latitude %}
+        {% set lon2 = states.device_tracker.s21_jt4yf9t106.attributes.longitude %}
+        {{ distance(lat1, lon1, lat2, lon2) }}
+
+    entfernung_sylvie_gla:
+      unique_id: entfernung_sylvie_gla
+      friendly_name: 'Entfernung Sylvie zum GLA'
+      unit_of_measurement: 'km'
+      value_template: >
+        {% set lat1 = states.device_tracker.bb_sp_219_e_device_tracker.attributes.latitude %}
+        {% set lon1 = states.device_tracker.bb_sp_219_e_device_tracker.attributes.longitude %}
+        {% set lat2 = states.device_tracker.sm_g975f.attributes.latitude %}
+        {% set lon2 = states.device_tracker.sm_g975f.attributes.longitude %}
+        {{ distance(lat1, lon1, lat2, lon2) }}
+
+    naechster_tracker_zum_gla:
+      friendly_name: 'Nächster Tracker zum GLA'
+      value_template: >-
+        {% set entfernung1 = states('sensor.entfernung_matthias_gla') | float %}
+        {% set entfernung2 = states('sensor.entfernung_sylvie_gla') | float %}
+        {% if entfernung1 < entfernung2 %}
+          Matthias
+        {% elif entfernung2 < entfernung1 %}
+          Sylvie
+        {% else %}
+          Beide Tracker sind gleich weit entfernt
+        {% endif %}
+
+    entfernung_matthias_vklasse:
+      unique_id: entfernung_matthias_vklasse
+      friendly_name: 'Entfernung Matthias zur V Klasse'
+      unit_of_measurement: 'km'
+      value_template: >
+        {% set lat1 = states.device_tracker.bl_bo_2222_device_tracker.attributes.latitude %}
+        {% set lon1 = states.device_tracker.bl_bo_2222_device_tracker.attributes.longitude %}
+        {% set lat2 = states.device_tracker.s21_jt4yf9t106.attributes.latitude %}
+        {% set lon2 = states.device_tracker.s21_jt4yf9t106.attributes.longitude %}
+        {{ distance(lat1, lon1, lat2, lon2) }}
+
+    entfernung_sylvie_vklasse:
+      unique_id: entfernung_sylvie_vklasse
+      friendly_name: 'Entfernung Sylvie zur V Klasse'
+      unit_of_measurement: 'km'
+      value_template: >
+        {% set lat1 = states.device_tracker.bl_bo_2222_device_tracker.attributes.latitude %}
+        {% set lon1 = states.device_tracker.bl_bo_2222_device_tracker.attributes.longitude %}
+        {% set lat2 = states.device_tracker.sm_g975f.attributes.latitude %}
+        {% set lon2 = states.device_tracker.sm_g975f.attributes.longitude %}
+        {{ distance(lat1, lon1, lat2, lon2) }}
+
+    naechster_tracker_zur_vklasse:
+      friendly_name: 'Nächster Tracker zur V Klasse'
+      value_template: >-
+        {% set entfernung1 = states('sensor.entfernung_matthias_vklasse') | float %}
+        {% set entfernung2 = states('sensor.entfernung_sylvie_vklasse') | float %}
+        {% if entfernung1 < entfernung2 %}
+          Matthias
+        {% elif entfernung2 < entfernung1 %}
+          Sylvie
+        {% else %}
+          Beide Tracker sind gleich weit entfernt
+        {% endif %}
+
+    matthias_home_entfernung_gerundete:
+      friendly_name: 'Gerundete Entfernung Matthias Home'
+      unit_of_measurement: 'km' # oder 'mi', abhängig von Ihrer Vorliebe
+      value_template: "{{ states('sensor.matthias_home_entfernung_3') | float | round(2) }}"
+
+    sylvie_home_entfernung_gerundete:
+      friendly_name: 'Gerundete Entfernung Sylvie Home'
+      unit_of_measurement: 'km' # oder 'mi', abhängig von Ihrer Vorliebe
+      value_template: "{{ states('sensor.sylvie_home_entfernung') | float | round(2) }}"
+
+    buddy_home_entfernung_gerundet:
+      friendly_name: 'Gerundete Entfernung zum Buddy'
+      unit_of_measurement: 'km' # oder 'mi', abhängig von Ihrer Vorliebe
+      value_template: "{{ states('sensor.buddy_home_distance') | float | round(2) }}"
+
+    entfernung_matthias_gla_gerundet:
+      friendly_name: 'Gerundete Entfernung Matthias zum GLA'
+      unit_of_measurement: 'km' # oder 'mi', abhängig von Ihrer Vorliebe
+      value_template: "{{ states('sensor.entfernung_matthias_gla') | float | round(2) }}"
+
+    entfernung_sylvie_gla_gerundet:
+      friendly_name: 'Gerundete Entfernung Sylvie zu, GLA'
+      unit_of_measurement: 'km' # oder 'mi', abhängig von Ihrer Vorliebe
+      value_template: "{{ states('sensor.entfernung_sylvie_gla') | float | round(2) }}"

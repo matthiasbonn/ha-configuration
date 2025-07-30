@@ -1,0 +1,26 @@
+light.kuechenlicht1:
+  sort_order: 7
+light.kuechenlicht2:
+  sort_order: 8
+light.kuche:
+  sort_order: 1
+light.kuechenlicht4:
+  sort_order: 10
+light.kuechenlicht5:
+  sort_order: 11
+light.kuechenlicht3:
+  sort_order: 9
+scene.kuche_nachtlicht:
+  sort_order: 4
+scene.kuche_hell:
+  sort_order: 5
+scene.kuche_kochen:
+  sort_order: 2
+scene.kuche_essen:
+  sort_order: 3
+scene.kuche_gedimmt:
+  sort_order: 6
+ey8:
+  sort_order: 1
+lze:
+  sort_order: 1

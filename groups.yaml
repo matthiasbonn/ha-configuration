@@ -1,0 +1,91 @@
+#################################################################################
+### Groups ###
+
+family:
+  - person.matthias
+  - person.sylvie
+  - person.cedric
+
+people:
+  - person.matthias
+  - person.sylvie
+  - person.cedric
+  - person.denise_celine
+
+matthias:
+  - device_tracker.desktop_5auv6ql_2
+  - device_tracker.s21_jt4yf9t106
+  - device_tracker.xiaomi_pad5
+
+matthias_room:
+  - device_tracker.xiaomi_pad5
+  - device_tracker.s21_jt4yf9t106
+
+sylvie:
+  - device_tracker.sm_g975f
+  - device_tracker.sm_t825
+
+sylvie_room:
+  - device_tracker.sm_g975f
+  - device_tracker.sm_t825
+
+denise-celine:
+  - device_tracker.pc_0a_4c_6b_e1_c2_3d
+
+ben:
+  - device_tracker.galaxy_tab_a_2
+
+marco:
+  - device_tracker.marco
+
+daniel:
+  - device_tracker.s22_von_daniel
+
+cars:
+  name: Autos
+  entities:
+    - device_tracker.bb_sp_219_e_device_tracker
+    - device_tracker.bl_bo_2222_device_tracker
+
+arriving:
+  name: Arriving
+  entities: []
+
+all_atHome:
+  name: Alle zuhaue
+  all: true
+  entities:
+    - person.cedric
+    - person.matthias
+    - person.sylvie
+
+someone_athome:
+  name: Jemand zuhause
+  entities:
+    - person.cedric
+    - person.denise_celine
+    - person.matthias
+    - person.sylvie
+    - person.daniel
+
+eg_atHome:
+  name: EG Anwesend
+  all: true
+  entities:
+    - person.matthias
+    - person.sylvie
+
+audio_devices:
+  - media_player.echo_gang_eg
+  - media_player.buro
+  - media_player.echo_cedric
+
+all_echos:
+  - media_player.echo_cedric
+  - media_player.echo_gang_eg
+  - media_player.buro
+
+lightsEG:
+  - light.stehlampe1_1
+  - light.stehlampe1_2
+  - light.stehlampe1_3

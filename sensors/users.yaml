@@ -1,0 +1,145 @@
+- platform: template
+  sensors:
+    matthias_speed:
+      friendly_name: 'Speed Matthias'
+      unit_of_measurement: 'km/h'
+      value_template: "{{ state_attr('device_tracker.s21_jt4yf9t106', 'speed') | int | round(0) }}"
+
+    sylvie_speed:
+      friendly_name: 'Speed Sylvie'
+      unit_of_measurement: 'km/h'
+      value_template: "{{ state_attr('device_tracker.sm_g975f', 'speed') | int }}"
+
+    matthias_im_auto:
+      friendly_name: 'Matthias im Auto'
+      value_template: >
+        {% if distance(states('device_tracker.s21_jt4yf9t106'), states('device_tracker.bb_sp_219_e_device_tracker')) < 0.05 %}
+          Matthias ist im GLA
+        {% elif distance(states('device_tracker.s21_jt4yf9t106'), states('device_tracker.bl_bo_2222_device_tracker')) < 0.05 %}
+          Matthias ist in der V-Klasse
+        {% else %}
+          Matthias ist nicht im Fahrzeug
+        {% endif %}
+
+    sylvie_im_auto:
+      friendly_name: 'Sylvie im Auto'
+      value_template: >
+        {% if distance(states('device_tracker.sm_g975f'), states('device_tracker.bb_sp_219_e_device_tracker')) < 0.05 %}
+          Sylvie ist im GLA
+        {% elif distance(states('device_tracker.sm_g975f'), states('device_tracker.bl_bo_2222_device_tracker')) < 0.05 %}
+          Sylvie ist in der V-Klasse
+        {% else %}
+          Sylvie ist nicht im Fahrzeug
+        {% endif %}
+
+    aktueller_fahrer_gla:
+      friendly_name: 'Aktueller Fahrer GLA'
+      value_template: >
+        {% set matthias_near_car1 = distance(states('device_tracker.s21_jt4yf9t106'), states('device_tracker.bb_sp_219_e_device_tracker')) < 0.05 %}
+        {% set sylvie_near_car1 = distance(states('device_tracker.sm_g975f'), states('device_tracker.bb_sp_219_e_device_tracker')) < 0.05 %}
+        {% if matthias_near_car1 %}
+          Matthias
+        {% elif sylvie_near_car1 %}
+          Sylvie
+        {% else %}
+          Unbekannt
+        {% endif %}
+
+    aktueller_fahrer_v_klasse:
+      friendly_name: 'Aktueller Fahrer V-Klasse'
+      value_template: >
+        {% set matthias_near_car2 = distance(states('device_tracker.s21_jt4yf9t106'), states('device_tracker.bl_bo_2222_device_tracker')) < 0.05 %}
+        {% set sylvie_near_car2 = distance(states('device_tracker.sm_g975f'), states('device_tracker.bl_bo_2222_device_tracker')) < 0.05 %}
+        {% if matthias_near_car2 %}
+          Matthias
+        {% elif sylvie_near_car2 %}
+          Sylvie
+        {% else %}
+          Unbekannt
+        {% endif %}
+
+    matthias_letzte_ankunft_zu_hause:
+      friendly_name: 'Letzte Ankunft Zuhause Matthias'
+      value_template: >
+        {% if is_state('device_tracker.s21_jt4yf9t106', 'home') %}
+          {{ states.device_tracker.s21_jt4yf9t106.last_changed | timestamp_local }}
+        {% else %}
+          Noch nicht zu Hause
+        {% endif %}
+
+    sylvie_letzte_ankunft_zu_hause:
+      friendly_name: 'Letzte Ankunft Zuhause Sylvie'
+      value_template: >
+        {% if is_state('device_tracker.sm_g975f', 'home') %}
+          {{ states.device_tracker.sm_g975f.last_changed | timestamp_local }}
+        {% else %}
+          Noch nicht zu Hause
+        {% endif %}
+
+    matthias_abwesenheitszeit:
+      friendly_name: 'Abwesenheitszeit Matthias'
+      unit_of_measurement: 'Stunden'
+      value_template: >
+        {% if not is_state('device_tracker.s21_jt4yf9t106', 'home') %}
+          {{ ((as_timestamp(now()) - as_timestamp(states.device_tracker.s21_jt4yf9t106.last_changed)) / 3600) | round(2) }}
+        {% else %}
+          Anwesend
+        {% endif %}
+
+    sylvie_abwesenheitszeit:
+      friendly_name: 'Abwesenheitszeit Sylvie'
+      unit_of_measurement: 'Stunden'
+      value_template: >
+        {% if not is_state('device_tracker.sm_g975f', 'home') %}
+          {{ ((as_timestamp(now()) - as_timestamp(states.device_tracker.sm_g975f.last_changed)) / 3600) | round(2) }}
+        {% else %}
+          Anwesend
+        {% endif %}
+
+    wer_ist_zu_hause:
+      friendly_name: 'Wer ist zu Hause'
+      value_template: >
+        {% set persons_home = [] %}
+        {% if is_state('device_tracker.s21_jt4yf9t106', 'home') %}
+          {% set persons_home = persons_home + ['Matthias'] %}
+        {% endif %}
+        {% if is_state('device_tracker.sm_g975f', 'home') %}
+          {% set persons_home = persons_home + ['Sylvie'] %}
+        {% endif %}
+        {% if persons_home | length > 0 %}
+          {{ persons_home | join(', ') }}
+        {% else %}
+          Niemand
+        {% endif %}
+
+    matthias_verweildauer_zuhause:
+      friendly_name: 'Matthias Verweildauer Zuhause'
+      unit_of_measurement: 'Zeit'
+      value_template: >
+        {% set last_changed = states.person.matthias.last_changed %}
+        {% set diff = (now() - last_changed).total_seconds() %}
+        {% if is_state('person.matthias', 'home') %}
+          {% if diff < 3600 %}
+            {{ (diff / 60) | round(0) }} Minuten
+          {% else %}
+            {{ (diff / 3600) | round(1) }} Stunden
+          {% endif %}
+        {% else %}
+          nicht zuhause
+        {% endif %}
+
+    sylvie_verweildauer_zuhause:
+      friendly_name: 'Sylvies Verweildauer Zuhause'
+      unit_of_measurement: 'Zeit'
+      value_template: >
+        {% set last_changed = states.person.sylvie.last_changed %}
+        {% set diff = (now() - last_changed).total_seconds() %}
+        {% if is_state('person.sylvie', 'home') %}
+          {% if diff < 3600 %}
+            {{ (diff / 60) | round(0) }} Minuten
+          {% else %}
+            {{ (diff / 3600) | round(1) }} Stunden
+          {% endif %}
+        {% else %}
+          nicht zuhause
+        {% endif %}

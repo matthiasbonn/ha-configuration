@@ -1,0 +1,58 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "YAML Lint (Projekt)",
+      "type": "shell",
+      "command": "yamllint .",
+      "presentation": {
+        "reveal": "always"
+      },
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "YAML Lint (Aktuelle Datei)",
+      "type": "shell",
+      "command": "yamllint \"${file}\"",
+      "presentation": {
+        "reveal": "always"
+      },
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "Home Assistant Config Check",
+      "type": "shell",
+      "command": "ha core check",
+      "presentation": {
+        "reveal": "always"
+      },
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "Restart Home Assistant",
+      "type": "shell",
+      "command": "ha core restart",
+      "presentation": {
+        "reveal": "always"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Update Home Assistant Add-ons",
+      "type": "shell",
+      "command": "ha addons upgrade --all",
+      "presentation": {
+        "reveal": "always"
+      },
+      "group": "build",
+      "problemMatcher": []
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+###############################################################################
+#   @author         :   Matthias Bonn
+#   @date           :   15/06/2023
+#   @package        :   Integrations
+#   @description    :   All the Integrations
+###############################################################################
+
+# Geo Warnungen
+#gdacs:
+#  categories:
+#    - Drought
+#    - Earthquake
+#  radius: 50
+#  latitude: !secret my_latitude
+#  longitude: !secret my_longitude
+
+# TP Link Switch discovered verschoben in UI
+# tplink:
+#  discovery: true
+
+#shelly:
+#  discovery : false
+#  cloud_auth_key: !secret shellycloud_auth_key
+#  cloud_server: !secret shellycloud_server
+
+#powercalc:

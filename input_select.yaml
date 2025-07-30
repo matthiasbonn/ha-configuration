@@ -1,0 +1,29 @@
+frontend_greeting:
+  name: Frontend Greeting
+  options:
+    - Guten Morgen
+    - Guten Tag
+    - Guten Abend
+    - Gute Nacht
+
+spotify_source:
+  name: Spotify Source
+  options:
+    - Ueberall
+    - Esszimmer
+    - Buero
+    - Gang
+  initial: Gang
+spotify_playlist:
+  name: Spotify Playlist
+  options:
+    - chill
+    - dedtime
+    - background
+    - scored
+    - jukebox
+    - classical
+    - disney
+    - jazz
+    - skylar
+  initial: background

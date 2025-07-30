@@ -1,0 +1,222 @@
+###############################################################################
+#   @author         :   Matthias Bonn
+#   @date           :   15/06/2023
+#   @package        :   Car B-SP 129 E
+#   @description    :   A collection of Mecedes Me Sensors and Automations
+###############################################################################
+- platform: template
+  sensors:
+    bb_sp219e_door_front_right:
+      unique_id: bb_sp219e_door_front_right
+      value_template: >-
+        {% if is_state_attr('sensor.bb_sp_219_e_lock','doorstatusfrontright',false) %}
+          geschlossen
+        {% else %}
+          offen
+        {% endif %}
+      friendly_name: 'Türe vorne rechts'
+
+    bb_sp219e_door_front_left:
+      value_template: >
+        {% if is_state_attr('sensor.bb_sp_219_e_lock', 'doorstatusfrontleft', false) %}
+          geschlossen
+        {% else %}
+          offen
+        {% endif %}
+      friendly_name: 'Türe vorne links'
+      # unit_of_measurement: ''
+
+    bb_sp219e_door_rear_right:
+      value_template: >
+        {% if is_state_attr('sensor.bb_sp_219_e_lock', 'doorstatusrearright', false) %}
+          geschlossen
+        {% else %}
+          offen
+        {% endif %}
+      friendly_name: 'Türe hinten rechts'
+      # unit_of_measurement: ''
+
+    bb_sp219e_door_rear_left:
+      value_template: >
+        {% if is_state_attr('sensor.bb_sp_219_e_lock', 'doorstatusrearleft', false) %}
+          geschlossen
+        {% else %}
+          offen
+        {% endif %}
+      friendly_name: 'Türe hinten links'
+      # unit_of_measurement: ''
+
+    # Heckklappe und Motorhaube
+    bb_sp219e_decklid:
+      value_template: >
+        {% if is_state_attr('sensor.bb_sp_219_e_lock', 'decklidstatus', false) %}
+          geschlossen
+        {% else %}
+          offen
+        {% endif %}
+      friendly_name: 'Heckklappe'
+      # unit_of_measurement: ''
+
+    bb_sp219e_enginehood:
+      value_template: >
+        {% if is_state_attr('sensor.bb_sp_219_e_lock', 'engineHoodStatus', false) %}
+          geschlossen
+        {% else %}
+          offen
+        {% endif %}
+      friendly_name: 'Motorhaube'
+      # unit_of_measurement: ''
+
+    # Gesammelte Status aller Fenster
+    bb_sp219e_door_allclosed:
+      value_template: >
+        {% if is_state_attr('sensor.bb_sp_219_e_lock', 'doorstatusfrontleft', false) and is_state_attr('sensor.bb_sp_219_e_lock', 'doorstatusfrontright', false) and is_state_attr('sensor.bb_sp_219_e_lock', 'doorstatusrearleft', false) and is_state_attr('sensor.bb_sp_219_e_lock', 'doorstatusrearright', false) %}
+          geschlossen
+        {% else %}
+          offen
+        {% endif %}
+      friendly_name: 'GLA Türen alle'
+      # unit_of_measurement: ''
+
+    # Türschließstatus
+    bb_sp219e_doorlock_state:
+      value_template: >-
+        {% if is_state_attr('sensor.bb_sp_219_e_lock', 'doorlockstatusvehicle', '0') %}
+          geoeffnet
+        {% elif is_state_attr('sensor.bb_sp_219_e_lock', 'doorlockstatusvehicle', '1') %}
+          intern
+        {% elif is_state_attr('sensor.bb_sp_219_e_lock', 'doorlockstatusvehicle', '2') %}
+          extern
+        {% elif is_state_attr('sensor.bb_sp_219_e_lock', 'doorlockstatusvehicle', '3') %}
+            teilweise offen	
+        {% endif %}
+      friendly_name: 'Türschliesstatus allg.'
+      # unit_of_measurement: ''
+
+    ## Fenster Status
+    bb_sp219e_window_front_right:
+      value_template: >-
+        {% if is_state_attr('binary_sensor.bb_sp_219_e_windows_closed', 'windowstatusfrontright', '2') %}
+          geschlossen
+        {% elif is_state_attr('binary_sensor.bb_sp_219_e_windows_closed', 'windowstatusfrontright', '1') %}
+          offen
+        {% else %}
+          teilw. offen
+        {% endif %}
+      friendly_name: 'Fenster vorne rechts'
+      # unit_of_measurement: ''
+
+    bb_sp219e_window_front_left:
+      value_template: >-
+        {% if is_state_attr('binary_sensor.bb_sp_219_e_windows_closed', 'windowstatusfrontleft', '2') %}
+          geschlossen
+        {% elif is_state_attr('binary_sensor.bb_sp_219_e_windows_closed', 'windowstatusfrontleft', '1') %}
+          offen
+        {% else %}
+          teilw. offen
+        {% endif %}
+      friendly_name: 'Fenster vorne links'
+      # unit_of_measurement: ''
+
+    bb_sp219e_window_rear_right:
+      value_template: >-
+        {% if is_state_attr('binary_sensor.bb_sp_219_e_windows_closed', 'windowstatusrearright', '2') %}
+          geschlossen
+        {% elif is_state_attr('binary_sensor.bb_sp_219_e_windows_closed', 'windowstatusrearright', '1') %}
+          offen
+        {% else %}
+          teilw. offen
+        {% endif %}
+      friendly_name: 'Fenster hinten rechts'
+      # unit_of_measurement: ''
+
+    bb_sp219e_window_rear_left:
+      value_template: >-
+        {% if is_state_attr('binary_sensor.bb_sp_219_e_windows_closed', 'windowstatusrearleft', '2') %}
+          geschlossen
+        {% elif is_state_attr('binary_sensor.bb_sp_219_e_windows_closed', 'windowstatusrearleft', '1') %}
+          offen
+        {% else %}
+          teilw. offen
+        {% endif %}
+      friendly_name: 'Fenster hinten links'
+      # unit_of_measurement: ''
+
+    # Gesammelte Status aller Fenster
+    bb_sp219e_window_allclosed:
+      value_template: >-
+        {% if is_state_attr('binary_sensor.bb_sp_219_e_windows_closed', 'windowstatusfrontright', '2') and is_state_attr('binary_sensor.w1n4n8gb9pj422841_windows_closed', 'windowstatusfrontleft', '2') and is_state_attr('binary_sensor.w1n4n8gb9pj422841_windows_closed', 'windowstatusrearright', '2') and is_state_attr('binary_sensor.w1n4n8gb9pj422841_windows_closed', 'windowstatusrearleft', '2') %}
+          geschlossen
+        {% else %}
+          offen
+        {% endif %}
+      friendly_name: 'Fensterstatus alle'
+      # unit_of_measurement: ''
+
+    # Status Vorklimatisierung
+    bb_sp219e_precond:
+      value_template: >-
+        {% if is_state_attr('sensor.bb_sp_219_e_range_electric', 'precondActive', false) %}
+          aus
+        {% else %}
+          läuft
+        {% endif %}
+      friendly_name: 'Vorklimatisiserung'
+      # unit_of_measurement: ''
+
+    # Zündungsstatus
+    bb_sp219e_ignition_state:
+      value_template: >-
+        {% if is_state('sensor.bb_sp_219_e_ignition_state', '0') %}
+          Abgschlossen
+        {% elif is_state('sensor.bb_sp_219_e_ignition_state', '1') %}
+          Zündung aus
+        {% elif is_state('sensor.bb_sp_219_e_ignition_state', '2') %}
+          Verbraucher ativ
+        {% elif is_state('sensor.bb_sp_219_e_ignition_state', '4') %}
+          Fahren
+        {% elif is_state('sensor.bb_sp_219_e_ignition_state', '5') %}
+          Anlassen
+        {% else %}
+          error
+        {% endif %}
+      friendly_name: 'Zündung'
+      # unit_of_measurement: ''
+
+    lightgang:
+      value_template: >
+        {% if is_state('light.gang', 'on') %}
+          Yes
+        {% else %}
+          No
+        {% endif %}
+
+    doorfrontright:
+      value_template: >
+        {% if is_state_attr('sensor.bb_sp_219_e_lock','doorstatusfrontright',false) %}
+          zu
+        {% else %}
+          auf
+        {% endif %}
+
+    bb_sp219e_door_front_right1:
+      value_template: >
+        {% if is_state_attr('sensor.bb_sp_219_e_lock','doorstatusfrontright',false) %}
+          geschlossen
+        {% else %}
+          offen
+        {% endif %}
+      friendly_name: 'Türe vorne rechts'
+
+    mercedes_gla_gesamtreichweite:
+      friendly_name: 'Mercedes GLA Gesamtreichweite'
+      unit_of_measurement: 'km'
+      value_template: >
+        {% set fuel_range = states('sensor.bb_sp_219_e_range_liquid') | float %}
+        {% set electric_range = states('sensor.bb_sp_219_e_range_electric') | float %}
+        {{ (fuel_range + electric_range) | round(0) }}
+
+    gla_distance_to_tankstelle:
+      friendly_name: 'Entfernung zur Tankstelle'
+      value_template: '{{ distance(states.device_tracker.bb_sp_219_e_device_tracker, states.zone.tankstelle) }}'
+      unit_of_measurement: 'km'

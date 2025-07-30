@@ -1,0 +1,61 @@
+---
+extends: default
+
+rules:
+  line-length:
+    max: 500
+    allow-non-breakable-words: true
+    allow-non-breakable-inline-mappings: true
+
+  indentation:
+    spaces: 2
+    indent-sequences: whatever
+
+  trailing-spaces:
+    level: warning
+
+  document-start:
+    present: false
+
+  truthy:
+    allowed-values:
+      [
+        'YES',
+        'Yes',
+        'yes',
+        'NO',
+        'No',
+        'no',
+        'TRUE',
+        'True',
+        'true',
+        'FALSE',
+        'False',
+        'false',
+        'ON',
+        'On',
+        'on',
+        'OFF',
+        'Off',
+        'off'
+      ]
+
+  key-duplicates: enable
+
+  empty-values:
+    forbid-in-block-mappings: false
+
+  comments:
+    min-spaces-from-content: 1
+    require-starting-space: true
+
+  new-lines:
+    type: unix
+
+  colons:
+    max-spaces-before: 0
+    max-spaces-after: 1
+
+  brackets:
+    min-spaces-inside: 0
+    max-spaces-inside: 0

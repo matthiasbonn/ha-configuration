@@ -1,0 +1,40 @@
+keller:
+  icon: mdi:home-floor-0
+  floor: Kellrt
+  disabled: false
+wohnzimmer:
+  icon: mdi:sofa
+  floor: EG
+  disabled: false
+kuche:
+  icon: mdi:chef-hat
+  floor: EG
+  disabled: false
+schlafzimmer:
+  icon: mdi:bed
+  floor: EG
+  disabled: false
+gang:
+  icon: mdi:home-floor-1
+  floor: EG
+  disabled: false
+esszimmer:
+  icon: mdi:silverware
+  floor: EG
+  disabled: false
+buro:
+  icon: mdi:desk
+  floor: OG
+  disabled: false
+haus:
+  icon: ''
+  floor: ''
+  disabled: true
+berlin_wohnungen:
+  icon: ''
+  floor: ''
+  disabled: true
+erdgeschoss:
+  icon: ''
+  floor: ''
+  disabled: true

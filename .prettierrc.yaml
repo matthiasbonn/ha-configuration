@@ -1,0 +1,16 @@
+printWidth: 120 # Zeilenlänge, nach HA-Community-Standard eher großzügig
+tabWidth: 2
+useTabs: false
+singleQuote: true
+bracketSpacing: true
+proseWrap: always
+semi: false
+arrowParens: always
+trailingComma: 'none'
+endOfLine: 'lf'
+overrides:
+  - files: '*.yaml'
+    options:
+      singleQuote: true
+      tabWidth: 2
+      proseWrap: preserve
