@@ -1,0 +1,16 @@
+{
+  "recommendations": [
+    "keesschollaart.vscode-home-assistant",
+    "redhat.vscode-yaml",
+    "esbenp.prettier-vscode",
+    "wholroyd.jinja",
+    "eamodio.gitlens",
+    "usernamehw.errorlens",
+    "alefragnani.bookmarks",
+    "christian-kohler.path-intellisense",
+    "bierner.markdown-preview-github-styles",
+    "mhutchie.git-graph",
+    "streetsidesoftware.code-spell-checker",
+    "shardulm94.trailing-spaces"
+  ]
+}

@@ -1,0 +1,205 @@
+###############################################################################
+#   @author         :   Matthias Bonn
+#   @date           :   15/06/2023
+#   @version        :   2.1.0
+#   @package        :   Mercedes Me – V-Klasse 250 d BL-BO 2222
+#   @description    :   Sensoren für Türen, Fenster, Zündung, Klima, Tank etc.
+###############################################################################
+
+- platform: template
+  sensors:
+    ###########################
+    ## Türen                 ##
+    ###########################
+
+    bl_b02222_door_front_right:
+      friendly_name: 'V-Klasse Türe vorne rechts'
+      value_template: >
+        {{ 'geschlossen' if is_state_attr('sensor.bl_bo_2222_lock', 'doorstatusfrontright', False) else 'offen' }}
+
+    bl_b02222_door_front_left:
+      friendly_name: 'V-Klasse Türe vorne links'
+      value_template: >
+        {{ 'geschlossen' if is_state_attr('sensor.bl_bo_2222_lock', 'doorstatusfrontleft', False) else 'offen' }}
+
+    bl_b02222_door_rear_right:
+      friendly_name: 'V-Klasse Türe hinten rechts'
+      value_template: >
+        {{ 'geschlossen' if is_state_attr('sensor.bl_bo_2222_lock', 'doorstatusrearright', False) else 'offen' }}
+
+    bl_b02222_door_rear_left:
+      friendly_name: 'V-Klasse Türe hinten links'
+      value_template: >
+        {{ 'geschlossen' if is_state_attr('sensor.bl_bo_2222_lock', 'doorstatusrearleft', False) else 'offen' }}
+
+    bl_b02222_door_allclosed:
+      friendly_name: 'V-Klasse Türen alle'
+      value_template: >
+        {% if
+          state_attr('sensor.bl_bo_2222_lock', 'doorstatusfrontright') == False and
+          state_attr('sensor.bl_bo_2222_lock', 'doorstatusfrontleft') == False and
+          state_attr('sensor.bl_bo_2222_lock', 'doorstatusrearright') == False and
+          state_attr('sensor.bl_bo_2222_lock', 'doorstatusrearleft') == False
+        %}
+          geschlossen
+        {% else %}
+          offen
+        {% endif %}
+
+    bl_b02222_decklid:
+      friendly_name: 'V-Klasse Heckklappe'
+      value_template: >
+        {{ 'geschlossen' if is_state_attr('sensor.bl_bo_2222_lock', 'decklidstatus', False) else 'offen' }}
+
+    bl_b02222_doorlock_state:
+      friendly_name: 'V-Klasse Türverriegelung'
+      value_template: >
+        {% set s = state_attr('sensor.bl_bo_2222_lock', 'doorlockstatusvehicle') %}
+        {% set status_map = {
+          '0': 'geöffnet',
+          '1': 'intern verriegelt',
+          '2': 'extern verriegelt',
+          '3': 'teilweise offen'
+        } %}
+        {{ status_map.get(s, 'unbekannt') }}
+
+    ###########################
+    ## Fenster               ##
+    ###########################
+
+    bl_b02222_window_front_right:
+      friendly_name: 'V-Klasse Fenster vorne rechts'
+      value_template: >
+        {% set s = state_attr('binary_sensor.bl_bo_2222_windows_closed', 'windowstatusfrontright') %}
+        {% if s == '2' %}
+          geschlossen
+        {% elif s == '1' %}
+          offen
+        {% else %}
+          teilw. offen
+        {% endif %}
+
+    bl_b02222_window_front_left:
+      friendly_name: 'V-Klasse Fenster vorne links'
+      value_template: >
+        {% set s = state_attr('binary_sensor.bl_bo_2222_windows_closed', 'windowstatusfrontleft') %}
+        {% if s == '2' %}
+          geschlossen
+        {% elif s == '1' %}
+          offen
+        {% else %}
+          teilw. offen
+        {% endif %}
+
+    bl_b02222_window_allclosed:
+      friendly_name: 'V-Klasse Fenster alle'
+      value_template: >
+        {% set wl = state_attr('binary_sensor.bl_bo_2222_windows_closed', 'windowstatusfrontleft') %}
+        {% set wr = state_attr('binary_sensor.bl_bo_2222_windows_closed', 'windowstatusfrontright') %}
+        {% if wl == '2' and wr == '2' %}
+          geschlossen
+        {% else %}
+          offen
+        {% endif %}
+
+    ###########################
+    ## Klima & Zündung       ##
+    ###########################
+
+    bl_b02222_auxheat:
+      friendly_name: 'V-Klasse Klimaanlage'
+      value_template: >
+        {% set s = states('sensor.bl_bo_2222_auxheat_status') %}
+        {% set aux_map = {
+          '0': 'inaktiv',
+          '1': 'Heizen',
+          '2': 'Lüften',
+          '3': 'Manuelles Heizen',
+          '4': 'Nachheizen',
+          '5': 'Nachlüften',
+          '6': 'Automatik'
+        } %}
+        {{ aux_map.get(s, 'unbekannt') }}
+
+    bl_b02222_ignition_state:
+      friendly_name: 'V-Klasse Zündung'
+      value_template: >
+        {% set s = states('sensor.bl_bo_2222_ignition_state') %}
+        {% set ign_map = {
+          '0': 'abgeschlossen',
+          '1': 'Zündung aus',
+          '2': 'Verbraucher aktiv',
+          '4': 'Fahren',
+          '5': 'Anlassen'
+        } %}
+        {{ ign_map.get(s, 'unbekannt') }}
+
+    ###########################
+    ## Entfernung & Standort ##
+    ###########################
+
+    vklasse_distance_to_tankstelle:
+      friendly_name: 'V-Klasse Entfernung zur Tankstelle'
+      unit_of_measurement: 'km'
+      value_template: >
+        {% if states('device_tracker.bl_bo_2222_device_tracker') not in ['unknown', 'unavailable'] %}
+          {{ distance('device_tracker.bl_bo_2222_device_tracker', 'zone.tankstelle') | round(1) }}
+        {% else %}
+          unbekannt
+        {% endif %}
+
+    bl_b02222_last_location:
+      friendly_name: 'V-Klasse Letzter Standort'
+      value_template: >
+        {% if is_state('device_tracker.bl_bo_2222_device_tracker', 'home') %}
+          Zuhause
+        {% else %}
+          {{ state_attr('device_tracker.bl_bo_2222_device_tracker', 'address') or 'Unterwegs' }}
+        {% endif %}
+
+    ###########################
+    ## Komfort & Warnungen   ##
+    ###########################
+
+    bl_b02222_status_summary:
+      friendly_name: 'V-Klasse Fahrzeugstatus gesamt'
+      value_template: >
+        {% set ignition = states('sensor.bl_bo_2222_ignition_state') %}
+        {% set doors_closed = is_state('bl_b02222_door_allclosed', 'geschlossen') %}
+        {% set windows_closed = is_state('bl_b02222_window_allclosed', 'geschlossen') %}
+        {% set locked = is_state('lock.ac5340870c08e2b5b1ef4037357d1776', 'locked') %}
+
+        {% if ignition == '4' %}
+          In Fahrt
+        {% elif ignition == '1' %}
+          Geparkt
+        {% elif doors_closed and windows_closed and ignition == '0' %}
+          Sicher verschlossen
+        {% else %}
+          Achtung: offen oder unsicher
+        {% endif %}
+
+    bl_b02222_critical_warning:
+      friendly_name: 'V-Klasse Fahrzeugwarnung'
+      value_template: >
+        {% set brake = is_state('binary_sensor.bl_bo_2222_low_brake_fluid_warning', 'on') %}
+        {% set washer = is_state('binary_sensor.bl_bo_2222_low_wash_water_warning', 'on') %}
+        {% set coolant = is_state('binary_sensor.bl_bo_2222_low_collant_level_warning', 'on') %}
+        {% set tires = is_state('binary_sensor.bl_bo_2222_tire_warning', 'on') %}
+        {% if brake or washer or coolant or tires %}
+          ⚠️ Warnung aktiv
+        {% else %}
+          ✅ Alles ok
+        {% endif %}
+
+    bl_b02222_fuel_status:
+      friendly_name: 'V-Klasse Tankstatus'
+      value_template: >
+        {% set range = states('sensor.bl_bo_2222_range_liquid') | float(0) %}
+        {% if range < 50 %}
+          🔴 Sehr gering (<50 km)
+        {% elif range < 100 %}
+          🟠 Mittel (<100 km)
+        {% else %}
+          🟢 OK
+        {% endif %}

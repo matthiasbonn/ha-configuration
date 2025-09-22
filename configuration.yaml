@@ -1,0 +1,90 @@
+# ==========================================
+# Version: 1.0.0
+# ------------------------------------------
+# Versionierung:
+# - MAJOR (X.0.0): Inkompatible Änderungen, die Anpassungen erfordern.
+# - MINOR (0.X.0): Neue Funktionalitäten, abwärtskompatibel.
+# - PATCH (0.0.X): Fehlerbehebungen oder Optimierungen.
+#
+# Beschreibung:
+# Diese Datei bindet die Hauptkonfiguration, Automatisierungen und Integrationen ein.
+# Sie ist der zentrale Einstiegspunkt für Home Assistant.
+# Änderungen in dieser Datei sollten mit Bedacht vorgenommen werden.
+#
+# ==========================================
+
+# ---------------------------------
+# Standard Setup von Home Assistant
+# ---------------------------------
+
+# Configure a default setup of Home Assistant (frontend, api, etc)
+default_config:
+
+# Erklärung der Include-Methoden:
+# - !include: Bindet eine einzelne Datei ein.
+#   Beispiel: !include automations.yaml
+#
+# - !include_dir_merge_named: Fügt alle Dateien aus einem Verzeichnis zusammen,
+#   basierend auf ihren YAML-Schlüsseln (z. B. "sensor:").
+#   Geeignet für Konfigurationen mit benannten Blöcken, wie Scripts oder Szenen.
+#   Beispiel: !include_dir_merge_named scripts/
+#
+# - !include_dir_merge_list: Kombiniert Dateien zu einer Liste.
+#   Ideal für Sensoren oder Automatisierungen, die als Liste definiert sind.
+#   Beispiel: !include_dir_merge_list automations/
+#
+# - !include_dir_list: Listet den Inhalt aller Dateien eines Verzeichnisses
+#   (ohne sie direkt zu kombinieren).
+
+# ---------------------------------
+# Frontend Konfiguration
+# ---------------------------------
+frontend:
+  # Lädt alle Themes aus dem Verzeichnis "themes/".
+  themes: !include_dir_merge_named themes/
+
+  # Zusätzliche Frontend-Module.
+  extra_module_url:
+    - /hacsfiles/hass-bha-icons/hass-bha-icons.js
+
+# ---------------------------------
+# Includes für Konfigurationsbereiche
+# ---------------------------------
+# Organisation der YAML-Dateien nach Funktionalität.
+
+automation: !include automations.yaml
+command_line: !include command_line.yaml
+group: !include groups.yaml
+input_select: !include input_select.yaml
+input_boolean: !include input_boolean.yaml
+input_datetime: !include input_datetime.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml
+sensor: !include_dir_merge_list sensors
+
+# Pakete gruppieren verschiedene Konfigurationsaspekte (z. B. Licht, Heizung).
+# Text to speech
+homeassistant:
+  packages: !include_dir_named packages
+
+# ---------------------------------
+# Text-to-Speech Konfiguration
+# ---------------------------------
+tts:
+  # Aktiviert die Google Translate TTS-Funktion.
+  - platform: google_translate
+
+# ---------------------------------
+# Externe Integrationen
+# ---------------------------------
+battery_notes: !include integrations/battery_notes.yaml
+cloud: !include integrations/alexa_filter.yaml
+goecharger: !include integrations/goecharger.yaml
+# iphonedetect: !include integrations/iphonedetect.yaml
+powercalc: !include integrations/powercalc.yaml
+shelly: !include integrations/shelly.yaml
+#  !include_dir_merge_named integrations/
+# Lädt alle Integrationen aus dem Verzeichnis "integrations/".
+# Jede Datei beschreibt eine spezifische Integration:
+# - integrations/goecharger.yaml
+# - integrations/battery_notes.yaml

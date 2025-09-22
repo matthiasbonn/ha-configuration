@@ -1,0 +1,18 @@
+r_phonak_horgerat:
+  name: R-Phonak Hörgerät
+  mac: BT_70:66:1B:1D:EF:36
+  icon:
+  picture:
+  track: false
+jvc_tv:
+  name: JVC TV
+  mac: BT_CC:D3:C1:F8:41:61
+  icon:
+  picture:
+  track: false
+marco:
+  name: 'Marco '
+  mac: BT_34:29:12:D7:19:70
+  icon:
+  picture:
+  track: true

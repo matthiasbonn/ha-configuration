@@ -1,0 +1,106 @@
+###############################################################################
+#   @author         :   Matthias Bonn
+#   @date           :   15/06/2023
+#   @package        :   Database
+#   @description    :   Recorder and Logger Configurations
+###############################################################################
+
+recorder:
+  db_url: !secret recorder_db_url
+  purge_keep_days: 730 # Speichert Daten für 2 Jahre (z. B. für langfristige Analysen).
+  auto_purge: true # Automatische Bereinigung der Datenbank, um Speicherplatz zu sparen.
+  commit_interval: 60 # Reduziert Schreibvorgänge (Standard: 1 Sekunde) und verbessert die Performance.
+
+  # Schließe irrelevante Daten aus, um die Datenbank klein zu halten.
+  exclude:
+    domains:
+      - device_tracker # Bewegungs- und Standortdaten (oft groß und unwichtig für Langzeitanalysen).
+      - media_player # Meist nicht relevant für langfristige Speicherung.
+      - uptime # Laufzeitinformationen der Geräte.
+      - time_date # Datum- und Zeit-Sensoren.
+      - worldclock # Globale Uhrzeitdaten.
+      - automation # Automationsereignisse (können separat im Logbuch überwacht werden).
+    entity_globs:
+      - sensor.clock* # Filtert alle Sensoren mit "clock" im Namen.
+      - sensor.date* # Filtert alle Sensoren mit "date" im Namen.
+      - sensor.glances* # Entfernt Systemmetriken, die über `glances` integriert sind.
+      - sensor.load_*m # Entfernt CPU-Last-Sensoren (z. B. 1m, 5m, 15m Last).
+      - sensor.time* # Entfernt Sensors mit "time" im Namen.
+      - sensor.uptime* # Entfernt Sensors mit "uptime" im Namen.
+
+logbook:
+  # Der Logbuch-Dienst zeigt relevante Ereignisse in der Benutzeroberfläche an.
+  include:
+    domains:
+      - media_player # Protokolliert Wiedergabestatus und Änderungen.
+      - automation # Aktivierungen und Status von Automationen.
+      - script # Ereignisse durch manuelle oder automatische Skriptausführungen.
+      - scene # Aktivierung von Szenen.
+      - light # Änderungen an Lichtern (z. B. Helligkeit, Farbe).
+      - switch # Schaltvorgänge von Relais oder Schaltern.
+      - device_tracker # Standortänderungen von Geräten/Personen.
+      - input_boolean # Statusänderungen benutzerdefinierter Ein-/Aus-Schalter.
+      - person # Änderungen des An-/Abwesenheitsstatus.
+      - climate # Moduswechsel, Zieltemperaturänderungen oder andere Thermostataktionen.
+  exclude:
+    domains:
+      - sensor # Sensoren werden nicht geloggt, um das Logbuch übersichtlich zu halten.
+    entities:
+      - automation.test # Schließt irrelevante Testautomationen aus.
+
+logger:
+  # Reduzierung der Protokollmenge, um die Performance zu verbessern und nur relevante Logs anzuzeigen.
+  default: warning # Standardlog-Level ist "warning".
+  logs:
+    homeassistant.components.recorder: warning # Nur Warnungen des Recorders anzeigen.
+    sqlalchemy.engine: error # Fehler bei Datenbankzugriffen.
+    custom_components: error # Fehler bei benutzerdefinierten Komponenten.
+    homeassistant.helpers.template: warning # Nur Warnungen zu Jinja2-Templates anzeigen.
+
+history:
+  # Protokolliert den Verlauf von Zustandsänderungen und Messwerten.
+  include:
+    domains:
+      - sensor # Messwerte von Sensoren (z. B. Temperatur, Feuchtigkeit).
+      - switch # Ein-/Aus-Status von Schaltern.
+      - media_player # Änderungen bei Mediengeräten (Play/Pause).
+      - light # Zustandsänderungen bei Lichtern (z. B. Helligkeit, Farbe).
+      - scene # Aktivierung von Szenen.
+      - automation # Statusänderungen bei Automationen.
+      - climate # Zustände von Thermostaten (z. B. Modus, Solltemperatur).
+  exclude:
+    domains:
+      - device_tracker # Standortverläufe nicht speichern.
+      - weather # Wetterdaten ausschließen, um Speicherplatz zu sparen.
+
+sensor:
+  # SQL-Sensoren zur Überwachung der Datenbank und der Home Assistant-Performance.
+  - platform: sql
+    db_url: !secret recorder_db_url
+    queries:
+      - name: 'MariaDB-Datenbankgröße'
+        query: >
+          SELECT ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS size_in_mb
+          FROM information_schema.tables
+          WHERE table_schema = 'homeassistant';
+        column: 'size_in_mb'
+        unit_of_measurement: 'MB'
+
+      - name: 'Anzahl Datensätze in Events'
+        query: >
+          SELECT COUNT(*) AS total_rows
+          FROM events;
+        column: 'total_rows'
+        unit_of_measurement: 'Einträge'
+
+      - name: 'MariaDB Abfragen pro Sekunde'
+        query: >
+          SHOW GLOBAL STATUS LIKE 'Queries';
+        column: 'Value'
+        unit_of_measurement: 'Queries/s'
+
+      - name: 'MariaDB Thread-Anzahl'
+        query: >
+          SHOW GLOBAL STATUS LIKE 'Threads_connected';
+        column: 'Value'
+        unit_of_measurement: 'Threads'

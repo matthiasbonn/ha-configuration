@@ -1,0 +1,50 @@
+name: Export HA Config to Public Repo
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout private repo
+        uses: actions/checkout@v4
+
+      - name: Filter export files
+        run: |
+          mkdir -p export
+          rsync -av --delete \
+            --exclude='.git/' \
+            --exclude='secrets.yaml' \
+            --exclude='.storage/' \
+            --exclude='*.db*' \
+            --exclude='backup/' \
+            --exclude='backups/' \
+            --exclude='cloud/' \
+            --exclude='tts/' \
+            --exclude='deps/' \
+            --exclude='*.log' \
+            --exclude='*.tar*' \
+            --exclude='custom_components/' \
+            . export/
+          cp README-public.md export/README.md
+      - name: Init public repo
+        run: |
+          cd export
+          git init
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          # robust: remote vorher entfernen, falls vorhanden
+          git remote remove origin 2>/dev/null || true
+          git remote add origin https://${{ secrets.PUBLIC_REPO_TOKEN }}@github.com/matthiasbonn/ha-configuration.git
+          git checkout -b main
+
+      - name: Commit and push to public
+        run: |
+          cd export
+          git add .
+          git commit -m "Automated public export from private main"
+          git push -f origin main

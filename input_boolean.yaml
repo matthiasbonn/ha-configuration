@@ -1,0 +1,81 @@
+vacation_mode:
+  initial: off
+  name: Urlaubsmodus
+
+office_mode:
+  initial: off
+  name: Bueromodus
+
+notify_enable_carwarning:
+  initial: on
+  name: Warnmeldung aller Fahrzeuge
+
+notify_enable_vklasse:
+  initial: on
+  name: Warnmeldung V-Klasse
+  icon: mdi:speaker-wireless
+
+notify_enabale_alexa_eg:
+  initial: on
+  name: Benachrichtigung via Alex EG
+  icon: mdi:speaker-wireless
+
+notify_enabale_alexa_dot_buero:
+  initial: off
+  name: Benachrichtigung via Alex Dot Buero
+  icon: mdi:speaker-wireless
+
+notify_enabale_alexa_dot_cedric:
+  initial: off
+  name: Benachrichtigung via Alex Dot Cedric
+  icon: mdi:speaker-wireless
+
+welcome_greeting:
+  name: Welcome Greeting
+  icon: mdi:speaker-wireless
+house_party_protocol_switch:
+  name: House Party Switch
+sylvie_heading_home:
+  name: Sylvie Heading Home
+  icon: mdi:car
+matthias_heading_home:
+  name: Matthias Heading Home
+  icon: mdi:car
+matthias_traffic_alerts:
+  name: Matthias Traffic Alerts
+  icon: mdi:bell-plus
+matthias_traffic_alert_home:
+  name: Matthias Traffic Alert Home
+  icon: mdi:traffic-light
+tornado_watch:
+  name: Tornado Watch
+  icon: mdi:message-alert
+sylvie_travel_monitor:
+  name: Sylvie Travel Monitor
+  icon: mdi:car
+matthias_travel_monitor:
+  name: Matthias Travel Monitor
+  icon: mdi:car
+
+weather_reports:
+  name: Weather Info
+traffic_reports:
+  name: traffic_reports
+sun_reports:
+  name: Sun Reports
+new_ha_announcement:
+  name: New HA Announcement
+  icon: mdi:twitter
+showing_now:
+  name: Showing Now
+  icon: mdi:popcorn
+cedric_school:
+  name: Cedric in der DHBW
+shuffle_spotify:
+  name: Spotify Shuffle
+good_morning_report:
+  name: Morgen Report
+master_bedroom_alarm:
+  name: Master Bedroom Alarm
+cedric_awake:
+  name: Ceric Awake

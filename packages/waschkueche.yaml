@@ -1,0 +1,92 @@
+# Dieses Paket definiert Sensoren zur Überwachung von Energieverbräuchen.
+# Es nutzt die REST-Plattform, um Daten von verschiedenen Geräten abzufragen.
+# IDs und weitere Verbesserungen wurden hinzugefügt, um Erweiterbarkeit und Wartbarkeit zu fördern.
+
+sensor:
+  # Verbrauch E-Bike
+  - platform: rest
+    name: 'E-Bike Verbrauch' # Klarer Anzeigename
+    unique_id: 'sensor_ebike_power' # Eindeutige ID für Home Assistant
+    state_class: measurement # Gibt an, dass es sich um Messwerte handelt
+    device_class: power # Typ des gemessenen Werts (Leistung)
+    unit_of_measurement: 'W' # Einheit für Leistung (Watt)
+    force_update: true # Aktualisierung erzwingen, auch wenn sich der Wert nicht ändert
+    resource: !secret mystrom_ebike # REST-URL, aus Secrets-Datei abgerufen
+    value_template: '{{ value_json.power }}' # JSON-Parsing für den Leistungswert
+
+  # Verbrauch Trockner
+  - platform: rest
+    name: 'Trockner Verbrauch'
+    unique_id: 'sensor_trockner_power'
+    state_class: measurement
+    device_class: power
+    unit_of_measurement: 'W'
+    force_update: true
+    resource: !secret mystrom_trockner
+    value_template: '{{ value_json.power }}'
+
+  # Verbrauch Warmwassergerät
+  - platform: rest
+    name: 'Warmwassergerät Verbrauch'
+    unique_id: 'sensor_warmwasser_power'
+    state_class: measurement
+    device_class: power
+    unit_of_measurement: 'W'
+    force_update: true
+    resource: !secret mystrom_warmwasser
+    value_template: '{{ value_json.power | default(0) }}'
+
+  # Verbrauch Waschmaschine
+  - platform: rest
+    name: 'Waschmaschine Verbrauch'
+    unique_id: 'sensor_waschmaschine_power'
+    state_class: measurement
+    device_class: power
+    unit_of_measurement: 'W'
+    force_update: true
+    resource: !secret mystrom_waschmaschine
+    value_template: '{{ value_json.power | default(0) }}'
+
+  ######
+
+  #  Energieverbraeuche
+  #
+  # Verbrauch E-Bike
+  - platform: rest
+    name: ebikepower
+    state_class: measurement
+    device_class: power
+    unit_of_measurement: 'W'
+    force_update: true
+    resource: !secret mystrom_ebike
+    value_template: '{{ value_json.power }}'
+
+  # Verbrauch Trockner
+  - platform: rest
+    name: trocknerpower
+    state_class: measurement
+    device_class: power
+    unit_of_measurement: 'W'
+    force_update: true
+    resource: !secret mystrom_trockner
+    value_template: '{{ value_json.power }}'
+
+  # Verbrauch Waschmaschine
+  - platform: rest
+    name: warmwassserpower
+    state_class: measurement
+    device_class: power
+    unit_of_measurement: 'W'
+    force_update: true
+    resource: !secret mystrom_warmwasser
+    value_template: '{{ value_json.power }}'
+
+  # Verbrauch Waschmaschine
+  - platform: rest
+    name: waschmaschinenpower
+    state_class: measurement
+    device_class: power
+    unit_of_measurement: 'W'
+    force_update: true
+    resource: !secret mystrom_waschmaschine
+    value_template: '{{ value_json.power }}'

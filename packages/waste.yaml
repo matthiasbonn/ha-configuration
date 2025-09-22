@@ -1,0 +1,68 @@
+waste_collection_schedule:
+  sources:
+    - name: ics
+      args:
+        file: 'www/Abfallkalender.ics'
+
+      customize:
+        - type: Restmüll
+          alias: Restmüll
+          show: true
+        - type: Gelber Sack
+          alias: Gelber Sack
+          show: true
+        - type: Papiertonne
+          alias: Papiertonne
+          show: true
+        - type: Biomüll
+          alias: Biomüll
+          show: true
+sensor:
+  # next collection
+  - platform: waste_collection_schedule
+    name: next_collection
+
+  - platform: waste_collection_schedule
+    name: Daystonextcollection
+    details_format: upcoming
+    value_template: '{{value.daysTo}}'
+
+  - platform: waste_collection_schedule
+    name: AbfallPapiermuell
+    details_format: 'upcoming'
+    value_template: '{% if value.daysTo == 0 %}heute{% elif value.daysTo == 1 %}morgen{% else %}in {{value.daysTo}} Tagen{% endif %}'
+    types:
+      - Papiertonne
+
+  - platform: waste_collection_schedule
+    name: AbfallRestmuell
+    details_format: 'appointment_types'
+    value_template: '{% if value.daysTo == 0 %}heute{% elif value.daysTo == 1 %}morgen{% else %}in {{value.daysTo}} Tagen{% endif %}'
+    date_template: '{{value.date.strftime("%Y-%m-%d")}}'
+    types:
+      - Restmüll
+
+  - platform: waste_collection_schedule
+    name: AbfallBiomuell
+    details_format: 'upcoming'
+    value_template: '{% if value.daysTo == 0 %}heute{% elif value.daysTo == 1 %}morgen{% else %}in {{value.daysTo}} Tagen{% endif %}'
+    types:
+      - Biomüll
+
+  - platform: waste_collection_schedule
+    name: AbfallGelberSack
+    details_format: 'upcoming'
+    value_template: '{% if value.daysTo == 0 %}heute{% elif value.daysTo == 1 %}morgen{% else %}in {{value.daysTo}} Tagen{% endif %}'
+    types:
+      - Gelber Sack
+
+  - platform: waste_collection_schedule
+    name: AbfallNaechster
+    details_format: 'upcoming'
+    value_template: '{{ value.daysTo }}'
+
+  - platform: waste_collection_schedule
+    name: AbfallNaechsterType
+    details_format: 'upcoming'
+    value_template: '{{value.types|join(", ")}}'
+    date_template: '{{value.date.strftime("%d.%m.%Y")}}'

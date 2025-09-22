@@ -1,0 +1,3288 @@
+- id: '1624650318076'
+  alias: Abfalltermine Erinnerung
+  description: Senden einer Benachrichtigung via Alexa im EG und mein Handy die verschiedene
+    Aktionen auslösen kann. Antwort wird in der Response Automatisierung verarbeitet
+  triggers:
+    - at: '20:00:00'
+      trigger: time
+  conditions:
+    - condition: and
+      conditions:
+        - condition: numeric_state
+          entity_id: sensor.abfallnaechster
+          below: 2
+        - condition: state
+          entity_id: schedule.zeitplan_benachrichtigungen
+          state: 'on'
+  actions:
+    - data:
+        message: Guckuck ich bins der Mülli. Bitte die Mülltonnen für {{ states('sensor.abfallnaechstertype')
+          }} entsprechend dem Kalender an die Straße stellen. Bitte auch die restlichen
+          Müllsäcke im Haus mitnehmen. Danke  - bis zum nächsten Mal dein Mülli
+        data:
+          type: tts
+      action: notify.alexa_media_echo_gang_eg
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: input_boolean.notify_enabale_alexa_dot_cedric
+              state: 'on'
+          sequence:
+            - data:
+                message: Hallo Cedric, kannst Du bitte die Mülltonnen für {{ states('sensor.abfallnaechstertype')
+                  }} gemäß dem Müllkalender vor an die Straße stellen? Bitte auch den restlichen
+                  Müll aus den Eimern mit raus nehmen. Vielen Dank!
+                data:
+                  type: tts
+              action: notify.alexa_media_echo_cedric
+      default: []
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: input_boolean.notify_enabale_alexa_dot_buero
+              state: 'on'
+          sequence:
+            - data:
+                message: Bitte noch die Mülltonnen für {{ states('sensor.abfallnaechstertype')
+                  }} gemäß dem Abfallkalender an die Straße stellen.
+                data:
+                  type: tts
+              action: notify.alexa_media_buro
+      default: []
+    - condition: device
+      device_id: 4428c0a3993c13006dbcd260b4679e6d
+      domain: device_tracker
+      entity_id: d5f93bd46197fb2ba38eaf0feef224fa
+      type: is_home
+    - action: notify.matthias_mobile
+      metadata: {}
+      data:
+        message: "Bitte den Müll {{states('sensor.abfallnaechstertype') }} raus stellen "
+        data:
+          actions:
+            - action: muell_erledigt
+              title: Erledigt
+            - action: muell_cedric_erinnern
+              title: Cedric erinnern
+          tag: muell_benachrichtigung
+    - action: notify.matthias_mobile
+      metadata: {}
+      data:
+        data:
+          tag: muell_benachrichtigung
+        message: clear_notification
+      enabled: false
+  mode: single
+- id: '1625007437574'
+  alias: Mu
+  description: ''
+  trigger:
+    - platform: numeric_state
+      entity_id: sensor.abfallnaechster
+      below: '2'
+  condition: []
+  action:
+    - device_id: 4f75f726b85d04a33065b86339396bfb
+      domain: mobile_app
+      type: notify
+      title: Müll muss raus
+      message: 'Bitte rsus bringen '
+  mode: single
+- id: '1625086290138'
+  alias: HACS Update(s)
+  trigger:
+    - platform: state
+      entity_id: sensor.hacs
+      from: '0'
+      to: '1'
+  action:
+    - service: notify.mobile_app_handy_matthias
+      data:
+        title: HACS Update(s)
+        message: Es gibt mindestens ein HACS-Update!
+        data:
+          color: '#f52d2d'
+          apns_headers:
+            apns-collapse-id: update-available
+- id: '1625606715723'
+  alias: V-Klasse Zuhause offen (v2.2.1)
+  description: 'Erkennt, ob die V-Klasse zuhause und länger unverschlossen ist. Benachrichtigt
+    mit Buttons, bietet Sperrung oder Erinnerung an, verriegelt automatisch mit PIN
+    und Retry (bis zu 3x).
+
+    '
+  triggers:
+    - entity_id: lock.ac5340870c08e2b5b1ef4037357d1776
+      to: unlocked
+      for: 00:30:00
+      trigger: state
+  conditions:
+    - condition: state
+      entity_id: sensor.bl_bo_2222_ignition_state
+      state: '0'
+      for: 00:25:00
+    - condition: state
+      entity_id: sensor.bl_b02222_door_allclosed
+      state: geschlossen
+      for: 00:01:00
+    - condition: zone
+      entity_id: device_tracker.bl_bo_2222_device_tracker
+      zone: zone.home
+    - condition: state
+      entity_id: input_boolean.vklasse_zuhause_warnung_gesperrt
+      state: 'off'
+  actions:
+    - data:
+        title: V-Klasse – Warnung
+        message: '{{ warn_text }}'
+      action: persistent_notification.create
+    - data:
+        title: V-Klasse – Warnung
+        message: '{{ warn_text }}'
+        data:
+          actions:
+            - action: LOCK_NOW
+              title: Jetzt verriegeln
+            - action: REMIND_LATER
+              title: Später erinnern
+            - action: IGNORE
+              title: Ignorieren
+            - action: DETAILS
+              title: Details anzeigen
+      action: notify.mobile_app_s21_jt4yf9t106
+    - data:
+        message: '{{ warn_text }}'
+        data:
+          type: tts
+      action: notify.alexa_media_echo_gang_eg
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: input_boolean.notify_enabale_alexa_dot_buero
+              state: 'on'
+          sequence:
+            - data:
+                message: '{{ warn_text }}'
+                data:
+                  type: tts
+              action: notify.alexa_media_buro
+    - delay: 00:10:00
+    - condition: state
+      entity_id: lock.ac5340870c08e2b5b1ef4037357d1776
+      state: unlocked
+    - condition: state
+      entity_id: sensor.bl_b02222_door_allclosed
+      state: geschlossen
+    - condition: state
+      entity_id: sensor.bl_bo_2222_ignition_state
+      state: '0'
+    - condition: state
+      entity_id: input_boolean.vklasse_zuhause_warnung_gesperrt
+      state: 'off'
+    - repeat:
+        count: 3
+        sequence:
+          - data:
+              entity_id: lock.ac5340870c08e2b5b1ef4037357d1776
+              code: 7661
+            action: lock.lock
+          - delay: 00:00:30
+          - choose:
+              - conditions:
+                  - condition: state
+                    entity_id: lock.ac5340870c08e2b5b1ef4037357d1776
+                    state: locked
+                sequence:
+                  - stop: Verriegelung erfolgreich
+    - data:
+        title: V-Klasse – Verriegelt
+        message: Die V-Klasse wurde automatisch zuhause verriegelt (PIN).
+      action: notify.mobile_app_s21_jt4yf9t106
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: input_boolean.notify_enabale_alexa_dot_buero
+              state: 'on'
+          sequence:
+            - data:
+                message: Die V-Klasse wurde automatisch abgeschlossen.
+                data:
+                  type: tts
+              action: notify.alexa_media_buro
+  mode: single
+  variables:
+    warn_text: Die V-Klasse ist seit 30 Minuten zuhause nicht abgeschlossen.
+- id: '1626082808474'
+  alias: NFC Tag Lichter aus ist gescannt
+  description: ''
+  trigger:
+    - platform: tag
+      tag_id: 55db99ef-bc6a-4bc0-ac0f-15a600a5f1c7
+  condition: []
+  action:
+    - service: notify.alexa_media_buro
+      data:
+        message: Lichter aus gescannt
+        data:
+          type: tts
+  mode: single
+- id: '1626186959963'
+  alias: NFC Tag Office Mode wurde gescannt
+  description: Aktivierung der Benachrichtigungen via Alexa Buero
+  trigger:
+    - platform: tag
+      tag_id: 388b790e-228e-4069-b113-0e3c1ee752ca
+  condition: []
+  action:
+    - service: input_boolean.toggle
+      target:
+        entity_id:
+          - input_boolean.office_mode
+          - input_boolean.notify_enabale_alexa_dot_buero
+  mode: single
+- id: '1642019815569'
+  alias: Internet Verbindung ausgefallen
+  description: Persistent Notification wenn die WAN Verbindung der AVM Fritzbox 7590
+    für 30 Min down ist
+  triggers:
+    - entity_id:
+        - binary_sensor.fritz_box_7590_wan_status_2
+      for:
+        hours: 0
+        minutes: 30
+        seconds: 0
+      to: 'off'
+      from: 'on'
+      trigger: state
+  conditions: []
+  actions:
+    - data:
+        message: Ausfall der Internet Verbindung seit 30 Min
+        title: Critical Internet Error
+      action: notify.persistent_notification
+  mode: single
+- id: '1642020367795'
+  alias: Rauchalarm im Schlafzimmer ausgelöst
+  description: 'Warnung via Alexa im EG, OG und Handys
+
+    Einschalten der Lichter im EG '
+  triggers:
+    - type: smoke
+      device_id: d773d83dc4ac8c26c21a4189bc30e3bd
+      entity_id: binary_sensor.rauchmelder_schlafzimmer_smoke_alarm_smoke_detected
+      domain: binary_sensor
+      trigger: device
+  conditions: []
+  actions:
+    - data:
+        message: 'Rauchalarm im Schlafzimmer '
+        title: FEUERALARM
+      action: notify.all_mobile_devices
+    - data:
+        message: Achtung Feueralarm, Achtung Feueralarm. Der Rauchmelder im Schlafzimmer
+          wurde ausgelöst. Bitte umgehend den Raum prüfen und anderen helfen. Das Licht
+          wurde automatisch im EG eingeschaltet. Ruhe bewahren.
+        data:
+          type: tts
+      action: notify.alexa_media_buro
+    - data:
+        message: Achtung Feueralarm, Achtung Feueralarm. Der Rauchmelder im Schlafzimmer
+          wurde ausgelöst. Bitte umgehend den Raum prüfen und anderen helfen. Das Licht
+          wurde automatisch im EG eingeschaltet. Ruhe bewahren.
+        data:
+          type: tts
+      action: notify.alexa_media_echo_gang_eg
+    - data:
+        message: Achtung Feueralarm, Achtung Feueralarm. Der Rauchmelder im Schlafzimmer
+          wurde ausgelöst. Bitte umgehend den Raum prüfen und anderen helfen. Das Licht
+          wurde automatisch im EG eingeschaltet. Ruhe bewahren.
+        data:
+          type: tts
+      action: notify.alexa_media_echo_cedric
+    - target:
+        area_id:
+          - kuche
+          - schlafzimmer
+          - wohnzimmer
+          - gang
+      data:
+        brightness_pct: 100
+        white: 255
+      action: light.turn_on
+  mode: single
+- id: '1642020753411'
+  alias: V-Klasse Warnung (v2.0.1)
+  description: 'v2.0.1 – Erkennt Fahrzeugwarnungen (Bremsflüssigkeit, Scheibenwasser,
+    Reifendruck etc.), erstellt persistente Notification und sendet Push mit Buttons
+    (plattformübergreifend).
+
+    '
+  triggers:
+    - entity_id:
+        - binary_sensor.bl_bo_2222_low_brake_fluid_warning
+        - binary_sensor.bl_bo_2222_low_wash_water_warning
+        - binary_sensor.bl_bo_2222_low_collant_level_warning
+        - binary_sensor.bl_bo_2222_tire_warning
+      from: 'off'
+      to: 'on'
+      trigger: state
+  conditions:
+    - condition: state
+      entity_id: input_boolean.vklasse_warnung_gesperrt
+      state: 'off'
+  actions:
+    - variables:
+        warn_name: "{{ state_attr(trigger.entity_id, 'friendly_name') or trigger.entity_id
+          }}"
+    - data:
+        title: V-Klasse – Fahrzeugwarnung
+        message: 'Es wurde eine Fahrzeugwarnung erkannt:
+
+          **{{ warn_name }}**
+
+          Bitte Fahrzeug prüfen oder Service kontaktieren.
+
+          '
+      action: persistent_notification.create
+    - data:
+        title: V-Klasse – Warnung
+        message: 'Achtung: {{ warn_name }} wurde gemeldet. Was möchtest du tun?'
+        data:
+          actions:
+            - action: REMIND_LATER
+              title: Später erinnern
+            - action: SERVICE
+              title: Service buchen
+            - action: IGNORE
+              title: Ignorieren
+            - action: DETAILS
+              title: Details anzeigen
+      action: notify.mobile_app_s21_jt4yf9t106
+    - data:
+        name: V-Klasse – Warnung
+        message: 'Fahrzeugwarnung erkannt: {{ warn_name }}'
+      action: logbook.log
+  mode: queued
+- id: '1642261769862'
+  alias: V-Klasse nicht Zuhause geparkt und Fenster offen V1.0.0
+  description: "v1.0.0 – Benachrichtigt, wenn das linke oder rechte vordere Fenster\n
+    \ länger als 1 Minute geöffnet ist, während das Fahrzeug mindestens 5 Minuten\n
+    \ geparkt ist und sich nicht zu Hause befindet."
+  triggers:
+    - type: turned_off
+      device_id: 571afb8a0326dc0e473b464c70011bf6
+      entity_id: 5eed368e26cac1a6eb303198129074c2
+      domain: binary_sensor
+      for:
+        hours: 0
+        minutes: 1
+        seconds: 0
+      trigger: device
+  conditions:
+    - type: is_on
+      condition: device
+      device_id: 571afb8a0326dc0e473b464c70011bf6
+      entity_id: c61dd1f103f1fdd35b2be97715fb481c
+      domain: binary_sensor
+      for:
+        hours: 0
+        minutes: 5
+        seconds: 0
+    - condition: device
+      device_id: 571afb8a0326dc0e473b464c70011bf6
+      domain: device_tracker
+      entity_id: 32f8f8d322ba1879f8f00fcb992dc017
+      type: is_not_home
+  actions:
+    - action: notify.parents_mobile
+      metadata: {}
+      data:
+        title: V-Klasse Warnung
+        message: 'Die V-Klasse ist geparkt und mind. ein Fenster ist geöffnet. Bitte
+          die Fenster schließen '
+  mode: single
+- id: '1642266984482'
+  alias: 'Lexmark Tonner niedrig '
+  description: ''
+  triggers:
+    - type: value
+      device_id: dc8bd13bc268d782f5ffc3c9b45ffcd9
+      entity_id: sensor.lexmark_cs720_black
+      domain: sensor
+      below: 21
+      trigger: device
+    - type: value
+      device_id: dc8bd13bc268d782f5ffc3c9b45ffcd9
+      entity_id: sensor.lexmark_cs720_cyan
+      domain: sensor
+      below: 21
+      trigger: device
+    - type: value
+      device_id: dc8bd13bc268d782f5ffc3c9b45ffcd9
+      entity_id: sensor.lexmark_cs720_magenta
+      domain: sensor
+      below: 21
+      trigger: device
+    - type: value
+      device_id: dc8bd13bc268d782f5ffc3c9b45ffcd9
+      entity_id: sensor.lexmark_cs720_yellow
+      domain: sensor
+      below: 21
+      trigger: device
+  conditions: []
+  actions:
+    - data:
+        message: Bitte {{ trigger.to_state.attributes.friendly_name }} bestellen
+        title: Info Drucker CS720
+      action: notify.persistent_notification
+  mode: single
+- id: '1642270495463'
+  alias: Sylvie Begrüßung wenn sie nach Hause kommt
+  description: 'Senden einer Begrüßung wenn Sylvie nach Hause gekommen ist. '
+  triggers:
+    - device_id: 118b30dda9361ad2d3a665a70615e1ef
+      domain: device_tracker
+      entity_id: device_tracker.handy_sylvie
+      type: enters
+      zone: zone.home
+      trigger: device
+  conditions: []
+  actions:
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: input_boolean.notify_enable_sylvie
+              state: 'on'
+          sequence:
+            - data:
+                message: Sylvie kommt gleich heim.
+                data:
+                  type: tts
+              action: notify.alexa_media_buro
+      default: []
+    - delay:
+        hours: 0
+        minutes: 2
+        seconds: 30
+        milliseconds: 0
+    - data:
+        message: Hallo Sylvie willkommen zuhause. Schön das Du wieder da bist.
+        data:
+          type: tts
+        title: 'Begrüßung '
+      action: notify.alexa_media_echo_gang_eg
+  mode: single
+- id: '1642290872435'
+  alias: '[Action] Büro Modus deaktivieren '
+  description: 'Wenn IPhone nicht zuhause wird der Büro Modus deaktiviert. '
+  triggers:
+    - device_id: 4428c0a3993c13006dbcd260b4679e6d
+      domain: device_tracker
+      entity_id: d5f93bd46197fb2ba38eaf0feef224fa
+      type: leaves
+      zone: zone.home
+      trigger: device
+    - trigger: time
+      at: '21:00:00'
+  conditions: []
+  actions:
+    - target:
+        entity_id:
+          - input_boolean.notify_enabale_alexa_dot_buero
+          - input_boolean.office_mode
+      data: {}
+      action: input_boolean.turn_off
+  mode: single
+- id: '1643364523177'
+  alias: V-Klasse Unterwegs entriegelt (v1.0.0)
+  description: 'v1.0.0 – Sendet eine Benachrichtigung, wenn die V-Klasse unterwegs
+    entriegelt wird – aber nur, wenn das Fahrzeug nicht zu Hause ist, die Feststellbremse
+    seit mindestens 15 Minuten aktiv ist, die Zündung aus ist und das Fenster vorne
+    links geschlossen ist.
+
+    '
+  triggers:
+    - entity_id:
+        - lock.bl_bo_2222_lock
+      from: locked
+      to: unlocked
+      for:
+        hours: 0
+        minutes: 0
+        seconds: 5
+      trigger: state
+  conditions:
+    - condition: state
+      entity_id: input_boolean.v_klasse_autoentriegelung_aktiv
+      state: 'on'
+      enabled: false
+    - condition: device
+      device_id: 571afb8a0326dc0e473b464c70011bf6
+      domain: device_tracker
+      entity_id: 32f8f8d322ba1879f8f00fcb992dc017
+      type: is_not_home
+    - condition: state
+      entity_id: sensor.bl_b02222_window_front_left
+      state: geschlossen
+      for: 00:00:30
+    - condition: state
+      entity_id: binary_sensor.bl_bo_2222_park_brake_status
+      state: 'on'
+      for: 00:15:00
+    - condition: state
+      entity_id: sensor.bl_bo_2222_ignition_state
+      state: '0'
+      for: 00:01:00
+  actions:
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: input_boolean.notify_enabale_alexa_dot_buero
+              state: 'on'
+            - condition: state
+              entity_id: input_boolean.notify_enable_vklasse
+              state: 'on'
+          sequence:
+            - data:
+                message: Die V-Klasse wurde gerade unterwegs aufgeschlossen
+                data:
+                  type: tts
+                title: V-Klasse - Info
+              action: notify.alexa_media_buro
+      default: []
+    - data:
+        message: Die V-Klasse wurde unterwegs aufgeschlossen
+        title: V-Klasse - Info
+      action: notify.persistent_notification
+  mode: queued
+  max: 5
+- id: '1644309725041'
+  alias: Speedtest manuell starten
+  description: ''
+  trigger:
+    - platform: state
+      entity_id: input_boolean.speedtest
+      to: 'on'
+  condition: []
+  action:
+    - service: speedtestdotnet.speedtest
+      data: {}
+    - service: input_boolean.turn_off
+      data: {}
+      target:
+        entity_id: input_boolean.speedtest
+  mode: single
+- id: '1645377232477'
+  alias: Vacuum Zone
+  description: ''
+  trigger:
+    - platform: state
+      entity_id: input_select.vacuum_rooms
+  condition: []
+  action:
+    - service: vacuum.stop
+      data: {}
+      target:
+        entity_id: vacuum.helene_wischer
+    - delay:
+        hours: 0
+        minutes: 0
+        seconds: 3
+        milliseconds: 0
+    - service: script.turn_on
+      data_template:
+        entity_id: '{% if states.input_select.vacuum_rooms.state == "Gang" %} script.vacuum_gang  {%
+          elif states.input_select.vacuum_rooms.state == "Hundezimmer" %} script.vacuum_hundezimmer  {%
+          elif states.input_select.vacuum_rooms.state == "Bad" %} script.vacuum_bad
+          {% elif states.input_select.vacuum_rooms.state == "Küche" %} script.vacuum_kueche
+          {% elif states.input_select.vacuum_rooms.state == "Esszimmer" %} script.vacuum_esszimmer  {%
+          elif states.input_select.vacuum_rooms.state == "Wohnzimmer" %} script.vacuum_wohnzimmer
+          {% elif states.input_select.vacuum_rooms.state == "Schlafzimmer" %} script.vacuum_schlafzimmer
+          {% endif %}
+
+          '
+  mode: single
+- id: '1645378690425'
+  alias: 'Helene Wischer: Notify When Zoned Cleaning is Complete'
+  description: ''
+  triggers:
+    - entity_id: vacuum.helene_wischer
+      from: Zoned cleaning
+      attribute: status
+      to: Returning home
+      trigger: state
+  conditions: []
+  actions:
+    - data:
+        message: Zone cleaning complete! return to home
+      action: persistent_notification.create
+  mode: single
+- id: '1645388225583'
+  alias: MeteoAlarmEU notification
+  description: ''
+  use_blueprint:
+    path: michal-stelmach/meteoalarmeu_mobile.yaml
+    input:
+      alert: binary_sensor.warning_dormettingen_1
+      notify_device: 4428c0a3993c13006dbcd260b4679e6d
+      custom_message: true
+      notification_title: '{{  states.binary_sensor.warning_dormettingen_1.attributes.headline
+        }} '
+      notification_message: '{{   states.binary_sensor.warning_dormettingen_1.attributes.description
+        }}'
+- id: '1645532901107'
+  alias: Sylvie ca 5 km entfernt von zuhause
+  description: Angabe der Entfernung und x Minuten je nach Info von Here Travel Time
+  triggers:
+    - entity_id: sensor.sylvie_to_home_distance
+      below: '5.0'
+      above: '4.8'
+      trigger: numeric_state
+      enabled: false
+    - trigger: numeric_state
+      entity_id:
+        - sensor.home_sylvie_entfernung
+      below: 5000
+  conditions:
+    - condition: state
+      entity_id: sensor.home_sylvie_fahrtrichtung
+      state: towards
+      for:
+        hours: 0
+        minutes: 2
+        seconds: 0
+  actions:
+    - condition: state
+      entity_id: input_boolean.notify_enabale_alexa_dot_buero
+      state: 'on'
+    - data:
+        message: Sylvie ist aktuell {{ states('sensor.sylvie_home_distance') }} Kilometer
+          entfernt. Sie wird in zirka {{ states('sensor.sylvie_home_duration_in_traffic')
+          }} Minuten zuhause eintreffen.
+        data:
+          type: tts
+      action: notify.alexa_media_buro
+  mode: single
+- id: '1661036808855'
+  alias: '[Sched] V-Klasse Aux Heat starten'
+  description: Die Standheizung wird auf  Dienstags und Freitags für die Abfahrzeit
+    11:00  Uhr über den Scheduler aktiviert. Termine Sylvie KG
+  triggers: []
+  conditions:
+    - condition: and
+      conditions:
+        - condition: device
+          device_id: 571afb8a0326dc0e473b464c70011bf6
+          domain: device_tracker
+          entity_id: 32f8f8d322ba1879f8f00fcb992dc017
+          type: is_home
+        - condition: device
+          type: is_off
+          device_id: 571afb8a0326dc0e473b464c70011bf6
+          entity_id: 488c736ed5e60c3cf5e87b8eaf90f619
+          domain: switch
+        - condition: numeric_state
+          entity_id: sensor.bl_bo_2222_fuel_level
+          above: 50
+  actions:
+    - data:
+        vin: W1VVNKSZ7R4337441
+      action: mbapi2020.auxheat_start
+    - action: notify.alexa_eg
+      data:
+        message: 'Die Standheizung der V-Klasse wurde für die bevorstehende Fahrt aktiviert '
+        title: Informationen V-Klasse
+        data:
+          type: tts
+  mode: single
+- id: '1661080505963'
+  alias: GLA Abgeschlossen Zuhause
+  description: 'Wenn das Fahrzeug zuhause geparkt und nicht abgeschlossen ist, wird
+    es nach 30 Minuten automatisch verschlossen.
+
+    '
+  triggers:
+    - entity_id: sensor.bb_sp_219_e_ignition_state
+      below: 1
+      for:
+        minutes: 30
+      trigger: numeric_state
+    - trigger: state
+      entity_id:
+        - sensor.bb_sp_219_e_ignition_state
+      to: '1'
+      for:
+        hours: 0
+        minutes: 30
+        seconds: 0
+  conditions:
+    - condition: and
+      conditions:
+        - condition: device
+          device_id: ff9afe7fb1ff15908b3a1421e45f39ca
+          domain: device_tracker
+          entity_id: f912bffc81ad84bb5281ff00d4086fe4
+          type: is_home
+        - condition: state
+          entity_id: binary_sensor.bb_sp_219_e_park_brake_status
+          state: 'on'
+          for:
+            minutes: 25
+        - condition: state
+          entity_id: sensor.bb_sp219e_door_allclosed
+          state: geschlossen
+        - condition: device
+          device_id: ff9afe7fb1ff15908b3a1421e45f39ca
+          domain: lock
+          entity_id: cd124eedcdf077990ed716c7b5f94a8f
+          type: is_unlocked
+  actions:
+    - device_id: ff9afe7fb1ff15908b3a1421e45f39ca
+      domain: lock
+      entity_id: cd124eedcdf077990ed716c7b5f94a8f
+      type: lock
+    - action: notify.persistent_notification
+      metadata: {}
+      data:
+        message: Der GLA wurde nach 30 Minuten zuhause abgeschlossen
+        title: Warnung GLA
+    - action: notify.matthias_mobile
+      metadata: {}
+      data:
+        message: Der GLA wurde gerade Zuhause nach 30 Minuten, zur Sicherheit, automatisch
+          abgeschlossen.
+        title: Fahrzeug wurde abgeschlossen.
+        data:
+          actions:
+            - action: glazuhauseabgeschlossen
+              title: Ok
+          tag: tagGLAzuhauseabgeschlossen
+  mode: single
+- id: '1661087888688'
+  alias: 'GLA Abgeschlossen Unterwegs '
+  description: Wenn das Fahrzeug unterwegs nicht abgeschlossen ist, wird eine Benachrichtigung
+    an die Person gesendet, die am nächsten zum Fahrzeug ist. Das Fahrzeug wird verschlossen.
+  triggers:
+    - trigger: state
+      entity_id:
+        - sensor.bb_sp_219_e_ignition_state
+      to: '1'
+      for:
+        hours: 0
+        minutes: 10
+        seconds: 0
+  conditions:
+    - condition: device
+      device_id: ff9afe7fb1ff15908b3a1421e45f39ca
+      domain: device_tracker
+      entity_id: f912bffc81ad84bb5281ff00d4086fe4
+      type: is_not_home
+    - condition: state
+      state: 'on'
+      for:
+        hours: 0
+        minutes: 5
+        seconds: 0
+      entity_id: binary_sensor.bb_sp_219_e_park_brake_status
+    - condition: state
+      state: geschlossen
+      entity_id: sensor.bb_sp219e_door_allclosed
+    - condition: device
+      device_id: ff9afe7fb1ff15908b3a1421e45f39ca
+      domain: lock
+      entity_id: lock.bb_sp_219_e_lock_lock
+      type: is_unlocked
+  actions:
+    - device_id: ff9afe7fb1ff15908b3a1421e45f39ca
+      domain: lock
+      entity_id: lock.bb_sp_219_e_lock_lock
+      type: lock
+    - action: notify.matthias_mobile
+      metadata: {}
+      data:
+        message: Der GLA wurde gerade nach 10 Minuten, zur Sicherheit, automatisch abgeschlossen.
+        title: 'Fahrzeug Abgeschlossen '
+        data:
+          actions:
+            - action: glaunterwegsabgeschlossen
+              title: Ok
+          tag: tagglaunterwegsabgeschlossen
+  mode: single
+- id: '1661088615388'
+  alias: V-Klasse Unterwegs offen (v1.3.0)
+  description: 'v1.3.0 – Erkennt, wenn die V-Klasse geparkt und unverschlossen ist,
+    und nicht zu Hause steht. Führt Schließversuche durch (mit PIN), gibt Rückmeldung
+    über Erfolg/Misserfolg und sperrt die Automatisierung für 30 Minuten bei wiederholtem
+    Fehlschlag.
+
+    '
+  triggers:
+    - entity_id: sensor.bl_b02222_ignition_state
+      to: '0'
+      for: 00:05:00
+      trigger: state
+  conditions:
+    - condition: state
+      entity_id: sensor.bl_b02222_door_allclosed
+      state: geschlossen
+      for: 00:00:30
+    - condition: state
+      entity_id: lock.ac5340870c08e2b5b1ef4037357d1776
+      state: unlocked
+    - condition: state
+      entity_id: input_boolean.v_klasse_lock_sperre
+      state: 'off'
+    - condition: device
+      device_id: 571afb8a0326dc0e473b464c70011bf6
+      domain: device_tracker
+      entity_id: 32f8f8d322ba1879f8f00fcb992dc017
+      type: is_not_home
+  actions:
+    - data:
+        title: V-Klasse Warnung
+        message: 'Die V-Klasse ist geparkt, nicht zu Hause und nicht abgeschlossen.
+          Automatischer Schließversuch wird gestartet (max. 3 Versuche).
+
+          '
+      action: persistent_notification.create
+    - repeat:
+        count: 3
+        sequence:
+          - condition: state
+            entity_id: lock.ac5340870c08e2b5b1ef4037357d1776
+            state: unlocked
+          - target:
+              entity_id: lock.ac5340870c08e2b5b1ef4037357d1776
+            data:
+              code: '7661'
+            action: lock.lock
+          - delay: 00:00:30
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: lock.ac5340870c08e2b5b1ef4037357d1776
+              state: locked
+          sequence:
+            - data:
+                title: V-Klasse abgeschlossen
+                message: Das automatische Abschließen war erfolgreich.
+              action: persistent_notification.create
+        - conditions:
+            - condition: state
+              entity_id: lock.ac5340870c08e2b5b1ef4037357d1776
+              state: unlocked
+          sequence:
+            - data:
+                title: V-Klasse NICHT abgeschlossen
+                message: "Trotz 3 Versuchen konnte die V-Klasse nicht abgeschlossen werden.
+
+                  Diagnose: - Lock-Zustand: {{ states('lock.ac5340870c08e2b5b1ef4037357d1776')
+                  }} - Türen: {{ states('sensor.bl_b02222_door_allclosed') }} {% if states('binary_sensor.mercedes_me_connection')
+                  != 'unknown' %} - Mercedes Me Verbindung: {{ states('binary_sensor.mercedes_me_connection')
+                  }} {% endif %}
+
+                  "
+              action: persistent_notification.create
+            - target:
+                entity_id: input_boolean.v_klasse_lock_sperre
+              action: input_boolean.turn_on
+              data: {}
+            - target:
+                entity_id: timer.v_klasse_lock_retry_freigabe
+              action: timer.start
+              data: {}
+  mode: single
+- id: '1669670066163'
+  alias: Smoke Alert
+  description: ''
+  use_blueprint:
+    path: user-x-adm/smoke-alert-en.yaml
+    input:
+      sensor:
+        - binary_sensor.rauchmelder_schlafzimmer_smoke_alarm_smoke_detected
+- id: '1675110041694'
+  alias: Update notification
+  description: 'Benachrichtigung für bestimmte Updates die verfügbar sind '
+  use_blueprint:
+    path: mdegat01/update_notifications.yaml
+    input:
+      reminder_hours: '6'
+      update_entities:
+        - update.home_assistant_operating_system_update
+        - update.home_assistant_core_update
+        - update.home_assistant_supervisor_update
+        - update.adguard_home_update
+        - update.mariadb_update
+        - update.node_red_update
+        - update.z_wave_js_update
+        - update.file_editor_update
+        - update.home_assistant_google_drive_backup_update
+        - update.bookstack_update
+        - update.aircast_update
+        - update.fritz_box_7590_fritz_os
+        - update.fritz_box_7490_fritz_os
+        - update.fritz_repeater_2400_fritz_os
+        - update.studio_code_server_update
+        - update.hacs_update
+        - update.waste_collection_schedule_update
+        - update.deutscher_wetterdienst_by_hg1337_update
+        - update.deutscher_wetterdienst_update
+        - update.eta_update
+        - update.go_echarger_update
+        - update.mercedesme_2020_update
+        - update.vehicle_info_card_update
+        - update.alexa_media_player_update
+        - update.anniversaries_update
+        - update.astroweather_card_update
+        - update.astroweather_update
+        - update.auto_backup_update
+        - update.battery_notes_update
+        - update.better_thermostat_update
+        - update.dwd_pollenflug_update
+        - update.gardena_smart_system_update
+        - update.fronius_solarweb_update
+        - update.log_viewer_update
+      mobile_app_device: 4428c0a3993c13006dbcd260b4679e6d
+      send_to_ha: true
+      only_after: 06:00:30
+      mobile_app_device_2: 3633d8575da5122051c1ac0615066dbd
+      only_before: '22:00:00'
+- id: '1698965642588'
+  alias: '[Action] Keiner zuhause '
+  description: Setzen der Raumtemperatur und Lichter
+  triggers:
+    - entity_id:
+        - zone.home
+      to: '0'
+      trigger: state
+  conditions: []
+  actions:
+    - data: {}
+      target:
+        device_id:
+          - 69a46a4d495620d1de9b405798ab2b8f
+          - c2efe7cb87c17f35d6fbf27b642fa8cf
+          - 37ffa1214278417e9c7de71666db5a40
+      action: light.turn_off
+    - metadata: {}
+      data:
+        preset_mode: 'On'
+      target:
+        area_id:
+          - bad
+          - esszimmer
+          - kuche
+          - schlafzimmer
+          - wohnzimmer
+      action: climate.set_preset_mode
+    - metadata: {}
+      data:
+        temperature: 18
+      target:
+        area_id:
+          - bad
+          - esszimmer
+          - kuche
+          - schlafzimmer
+          - wohnzimmer
+      action: climate.set_temperature
+    - action: notify.mobile_app_s21_jt4yf9t106
+      metadata: {}
+      data:
+        message: Keiner zuhause
+  mode: single
+- id: '1705897686552'
+  alias: 'Reiseinfo -> Sylvie  Ankunftszeit von Matthias vom STR '
+  description: 'Versenden eine Nachricht an das Handy von Sylvie, wenn Matthias am
+    Flughafen los gefahren ist. '
+  triggers:
+    - entity_id: person.matthias
+      zone: zone.flughafen_stuttgart
+      event: leave
+      trigger: zone
+  conditions:
+    - condition: and
+      conditions:
+        - condition: time
+          after: '16:00:00'
+          weekday:
+            - fri
+            - thu
+        - condition: numeric_state
+          entity_id: sensor.entfernung_matthias_gla
+          below: 1
+        - condition: state
+          entity_id: sensor.home_matthias_fahrtrichtung
+          state: towards
+  actions:
+    - metadata: {}
+      data:
+        message: Matthias ist am Flughafen Stuttgart losgefahren. Basierend auf dem
+          aktuellen Verkehr, sollte er ungefähr um {{ (as_timestamp(now()) + (states('sensor.matthias_home_dauer_im_verkehr')
+          | float) * 60) | timestamp_custom('%H:%M', True) }} Uhr zu Hause ankommen.
+        title: Reiseinfo - Matthias
+      action: notify.mobile_app_sm_g975f
+  mode: single
+- id: '1705900089399'
+  alias: GLA Schweibenwaschwasser
+  description: ''
+  triggers:
+    - type: problem
+      device_id: ff9afe7fb1ff15908b3a1421e45f39ca
+      entity_id: 128e855c4048cf2da23242cbb250f65d
+      domain: binary_sensor
+      for:
+        hours: 0
+        minutes: 5
+        seconds: 0
+      trigger: device
+  conditions: []
+  actions:
+    - metadata: {}
+      data:
+        message: Bitte Scheibenwaschwasser bei nächster Gelegenheit auffüllen!
+        title: Warnung GLA Verbauchsstoffe
+      action: notify.matthias_mobile
+  mode: single
+- id: '1705900266581'
+  alias: GLA Bremsflüssigkeit Warning
+  description: 'Info sobald das Waschwasser aufgefüllt werden soll
+
+    '
+  triggers:
+    - type: problem
+      device_id: ff9afe7fb1ff15908b3a1421e45f39ca
+      entity_id: f1ec7a40cd358cc90ddf862dba4dff7a
+      domain: binary_sensor
+      trigger: device
+  conditions: []
+  actions:
+    - metadata: {}
+      data:
+        message: 'Bremsflüssigkeit muss geprüft werden '
+        title: Warning - GLA
+      action: notify.matthias_mobile
+    - metadata: {}
+      data:
+        message: 'Bremsflüssigkeit am GLA muss geprüft werden '
+        title: Warning - GLA
+      action: notify.persistent_notification
+  mode: single
+- id: '1706478536223'
+  alias: Helene Wischer Wassertank leer
+  description: ''
+  triggers:
+    - type: problem
+      device_id: 8ace007cd8e172581f1df6f15e866213
+      entity_id: 7a578ca17b9fec2a0b55cc2d9a3948a3
+      domain: binary_sensor
+      trigger: device
+  conditions: []
+  actions:
+    - action: notify.alexa_media_erdgeschoss_2
+      data:
+        message: Halli hallo ich bin´s Helene Wischer. Bitte füll meinen Wassertank
+          auf bevor ich das nächste mal Atemlos durch die Wohnung fahre. Danke Dir.
+        data: type:tts
+  mode: single
+- id: '1707492484179'
+  alias: Dynamische Bergruessung
+  description: ''
+  trigger:
+    - platform: state
+      entity_id: sun.sun
+    - platform: time
+      at: '12:01:00'
+  condition:
+    - condition: state
+      entity_id: person.matthias
+      state: home
+  action:
+    - service: script.dynamic_greeting
+      data: {}
+  mode: single
+- id: '1707496490629'
+  alias: Ankunft einer Person
+  description: Persönliche Begrüßung via Alexa Media im Gang
+  triggers:
+    - entity_id:
+        - device_tracker.s21_tqc60v9ntq_2
+        - device_tracker.sm_g975f
+      to: home
+      trigger: state
+  conditions:
+    - condition: template
+      value_template: '{{ trigger.from_state.state != ''home'' }}"'
+  actions:
+    - delay:
+        hours: 0
+        minutes: 5
+        seconds: 0
+        milliseconds: 0
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.to_state.entity_id == 'person.matthias' }}"
+          sequence:
+            - data:
+                person: Matthias
+              action: script.dynamic_greeting_alexa
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.to_state.entity_id == 'person.sylvie' }}"
+          sequence:
+            - data:
+                person: Sylvie
+              action: script.dynamic_greeting_alexa
+  mode: single
+- id: '1707498356139'
+  alias: 'Ankunft gleichzeitig '
+  description: 'Begrüßung wenn beide innerhalb von 5 Minuten zuhause eintreffen. '
+  triggers:
+    - entity_id:
+        - input_boolean.beide_zuhause
+      to: 'on'
+      trigger: state
+  conditions: []
+  actions:
+    - delay:
+        hours: 0
+        minutes: 5
+        seconds: 0
+        milliseconds: 0
+    - data:
+        data: type= tts
+        message_template: "{% set hour = now().hour %}              {% set season =
+          now().strftime('%m')|int %} {% set greeting = \"Willkommen zu Hause, ihr beiden.\"
+          %} {% if hour < 12 %}               \n  {% set time_part = \"Ich hoffe, ihr
+          habt einen wundervollen Morgen.\" %}            \n{% elif hour < 18 %}\n  {%
+          set time_part = \"Ich hoffe, ihr habt einen schönen Tag.\" %}\n{% else %}\n
+          \ {% set time_part = \"Ich hoffe, ihr habt einen angenehmen Abend.\" %}\n{%
+          endif %} {% if season in [3, 4, 5] %}\n  {% set season_part = \"Genießt den
+          schönen Frühling.\" %}\n{% elif season in [6, 7, 8] %}\n  {% set season_part
+          = \"Genießt den warmen Sommer.\" %}\n{% elif season in [9, 10, 11] %}\n  {%
+          set season_part = \"Genießt den farbenfrohen Herbst.\" %}\n{% else %}\n  {%
+          set season_part = \"Genießt den gemütlichen Winter.\" %}\n{% endif %} {{ greeting
+          + \" \" + time_part + \" \" + season_part }}"
+      action: notify.alexa_media_echo_gang_eg
+  mode: single
+- id: '1707522920272'
+  alias: GLA Fenster offen
+  description: Versende eine Info an die Person die dem Fahrzeug am nǎchsten ist
+  triggers:
+    - entity_id:
+        - sensor.bb_sp219e_window_allclosed
+      to: offen
+      for:
+        hours: 0
+        minutes: 2
+        seconds: 0
+      trigger: state
+  conditions:
+    - condition: state
+      entity_id: sensor.bb_sp_219_e_ignition_state
+      state: '0'
+      for:
+        hours: 0
+        minutes: 5
+        seconds: 0
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ is_state('input_text.fahrer_gla', 'Matthias') }}
+
+                "
+          sequence:
+            - metadata: {}
+              data:
+                message: Ein oder mehrere Fenster sind offen. Bitte schließen wenn du kannst.
+                title: Warnung GLA
+              action: notify.mobile_app_s21_jt4yf9t106
+        - conditions:
+            - condition: template
+              value_template: "{{ is_state('input_text.fahrer_gla', 'Sylvie') }}
+
+                "
+          sequence:
+            - metadata: {}
+              data:
+                title: Warnung GLA
+                message: Ein oder mehrere Fenster sind offen. Bitte schließen wenn du kannst.
+              action: notify.mobile_app_sm_g975f
+  mode: single
+- id: '1707715423241'
+  alias: GLA Batterielevel Überwachung
+  description: 'Meldung wenn am Abend die Batterieladung unter 25% liegt und das Fahrzeug
+    nicht geladen wird. '
+  triggers:
+    - entity_id:
+        - sensor.bb_sp_219_e_state_of_charge
+      below: 25
+      trigger: numeric_state
+    - hours: /1
+      trigger: time_pattern
+  conditions:
+    - condition: and
+      conditions:
+        - condition: state
+          entity_id: device_tracker.bb_sp_219_e_device_tracker
+          state: home
+        - condition: numeric_state
+          entity_id: sensor.bb_sp_219_e_charging_power
+          below: 1
+        - condition: time
+          after: '15:00:00'
+          before: '22:00:00'
+          weekday:
+            - sun
+            - sat
+            - fri
+            - mon
+            - tue
+            - wed
+            - thu
+        - condition: numeric_state
+          entity_id: sensor.bb_sp_219_e_state_of_charge
+          below: 25
+  actions:
+    - action: notify.matthias_mobile
+      data:
+        message: Die Hochvoltbatterie hat einen Ladestand von {{ states('sensor.bb_sp_219_e_state_of_charge')
+          }}%. Bitte das Fahrzeug mit dem Ladekabel verbunden und den Ladevorgang freigegeben.
+        data:
+          actions:
+            - action: ladenbestaetigt
+              title: Bestätigen
+            - action: ladungignorieren
+              title: Ignorieren
+          tag: hvladen
+  mode: single
+- id: '1708103649822'
+  alias: Battery Replaced
+  description: Battery Replaced
+  triggers:
+    - event_type: battery_notes_battery_increased
+      trigger: event
+  conditions: []
+  actions:
+    - data:
+        device_id: '{{ trigger.event.data.device_id }}'
+      action: battery_notes.set_battery_replaced
+  mode: queued
+- id: '1708103688768'
+  alias: Battery Not Reported
+  description: Battery not reported
+  triggers:
+    - event_type: battery_notes_battery_not_reported
+      trigger: event
+  conditions: []
+  actions:
+    - data:
+        title: '{{ trigger.event.data.device_name }} Battery Not Reported
+
+          '
+        message: 'The device has not reported its battery level for {{ trigger.event.data.battery_last_reported_days
+          }} days {{ ''\n'' -}} Its last reported level was {{ trigger.event.data.battery_last_reported_level
+          }}% {{ ''\n'' -}} You need {{ trigger.event.data.battery_quantity }}× {{ trigger.event.data.battery_type
+          }}
+
+          '
+      action: persistent_notification.create
+  mode: queued
+  max: 30
+- id: '1708123036446'
+  alias: 'Fenster offen '
+  description: ''
+  use_blueprint:
+    path: panhans/entity_state_persistent_notification.yaml
+    input:
+      sensor_entity:
+        - binary_sensor.bad_fenster
+        - binary_sensor.wc_fenster
+        - binary_sensor.wohnzimmer_fenster
+        - binary_sensor.esszimmer_fenster
+        - binary_sensor.schlafzimmer_fenster
+        - binary_sensor.kueche_fenster
+      for_time_m: 30
+      notify_device: 4428c0a3993c13006dbcd260b4679e6d
+      ha_notification: true
+      period: 60
+- id: '1708329836656'
+  alias: Statusmeldungen des Trockners
+  description: Meldung beim Starten und Beenden des Vorganges
+  use_blueprint:
+    path: Blackshome/appliance-notifications.yaml
+    input:
+      power_sensor: sensor.trocknerpower
+      start_appliance_power: 100
+      start_time_delay: 1
+      end_appliance_power: 50
+      end_time_delay: 2
+      include_start_notify: enable_start_notify_options
+      start_notify_device:
+        - 4428c0a3993c13006dbcd260b4679e6d
+      start_title: 'Trockner -Information '
+      start_message: 'Trockner wurde gestartet '
+      include_end_notify: enable_end_notify_options
+      end_message_title: 'Trockner - Information '
+      end_message: Trockner ist fertig
+      include_custom_actions:
+        - enable_start_custom_actions
+        - enable_end_custom_actions
+      start_custom_actions:
+        - metadata: {}
+          data:
+            message: Hi, ich bin´s der Trockner, die Trommel läuft und ich versuche
+              die Wäsche zu trocknen. Wenn´s klappt sag ich dir später Bescheid das
+              du sie holen kannst. Tschüsi, bis später Peter!
+          action: notify.alexa_media_eg_gang
+      end_custom_actions:
+        - metadata: {}
+          data:
+            message: Hey ich bin´s der Trockner, habe fertig du kannst kommen und meine
+              Trommel leeren, Bis gleich. Tschaule Paule.
+          action: notify.alexa_media_eg_gang
+      before_time: '23:00:00'
+      end_notify_device:
+        - 4428c0a3993c13006dbcd260b4679e6d
+        - 3633d8575da5122051c1ac0615066dbd
+      include_power_tracking: disable_power_tracking
+      include_duration_tracking: enable_duration_tracking
+      include_watchdog: enable_watchdog
+      end_message_duration_tracking: Laufzeit
+      watchdog_timeframe:
+        hours: 5
+        minutes: 0
+        seconds: 0
+      after_time: 06:00:00
+      include_time: time_enabled
+- id: '1711804782873'
+  alias: ETA Heizung Pelletvorrstsbehaelter unter 11kg
+  description: Wenn weniger als 11 kg im Pelletvoratsbehälter sind eine Info senden
+  triggers:
+    - entity_id:
+        - sensor.eta_192_168_200_60_kessel_zahlerstande_inhalt_pelletsbehalter
+      below: 10.9
+      for:
+        hours: 0
+        minutes: 15
+        seconds: 0
+      trigger: numeric_state
+  conditions: []
+  actions:
+    - metadata: {}
+      data:
+        message: Bitte das Pelletlager in der Heizung über die Saugturbine füllen.
+        title: Pelletlager
+      action: notify.alexa_media_eg_gang
+    - metadata: {}
+      data:
+        message: 'Cedric, bitte das Pelletlager in der Heizung über die Saugturbine
+          füllen '
+      action: notify.alexa_media_echo_cedric
+    - action: notify.all_mobile_device
+      metadata: {}
+      data:
+        data:
+          tag: Plettettank
+        title: Heizung
+        message: 'Der Pellettank der Heizung muss gefüllt werden. '
+    - metadata: {}
+      data:
+        message: Bitte das Pelletlager in der Heizung über die Saugturbine füllen.
+        title: ETA-Heizung
+        id: ETA-Heizung-Pelletvorratsbehaelter
+      action: notify.persistent_notification
+  mode: single
+- id: '1711811557001'
+  alias: ETA-Heizung Kesseldruck zu hoch
+  description: Info wenn der Kesseldruck über 2,3 Bar steigt
+  triggers:
+    - entity_id:
+        - sensor.eta_192_168_200_60_kessel_eingange_kesseldruck
+      for:
+        hours: 0
+        minutes: 5
+        seconds: 0
+      above: 2.3
+      trigger: numeric_state
+  conditions: []
+  actions:
+    - metadata: {}
+      data:
+        message: Der Kesseldruck hat einen Warenwert überschritten , bitte Anlage prüfen
+          und ggf. Heizungsbauer informieren.
+        title: 'ETA-Heizung Warnung '
+      action: notify.persistent_notification
+    - action: notify.matthias_mobile
+      metadata: {}
+      data:
+        message: Der Kesseldruck hat einen kritischen Wert überschritten, kontrolliere
+          die Anlage und informiere ggf. den Heizungsbauer.
+        title: 'ETA-Heizung Warnung '
+        data:
+          actions:
+            - action: etaKesseldruckbestaetigt
+              title: Bestätigen
+            - action: etaKesseldruckignorieren
+              title: Ignorieren
+          tag: etaKesseldruck
+  mode: single
+- id: '1711983611200'
+  alias: ETA Heizung Pelletvorrstsbehaelter unter 7kg
+  description: 'Wenn weniger als 7 kg im Pelletvoratsbehälter sind wird via Alexa
+    eine Info gesendet. '
+  triggers:
+    - entity_id:
+        - sensor.eta_192_168_200_60_kessel_zahlerstande_inhalt_pelletsbehalter
+      below: 7
+      for:
+        hours: 0
+        minutes: 15
+        seconds: 0
+      trigger: numeric_state
+  conditions: []
+  actions:
+    - metadata: {}
+      data:
+        message: Bitte das Pelletlager in der Heizung über die Saugturbine füllen.
+        title: Pelletlager
+      action: notify.alexa_media_eg_gang
+    - metadata: {}
+      data:
+        message: 'Cedric, bitte das Pelletlager in der Heizung über die Saugturbine
+          füllen '
+      action: notify.alexa_media_echo_cedric
+    - metadata: {}
+      data:
+        message: 'Bitte das Pelletlager in der Heizung über die Saugturbine füllen '
+      action: notify.mobile_app_sm_t825
+    - metadata: {}
+      data:
+        message: Bitte das Pelletlager in der Heizung über die Saugturbine füllen.
+        title: ETA-Heizung
+        id: ETA-Heizung-Pelletvorratsbehaelter
+      action: notify.persistent_notification
+    - action: notify.mobile_app_s21_jt4yf9t106
+      metadata: {}
+      data:
+        title: Pelletvorrat Heizung
+        message: Der Vorratsbehälter in der Heizung hat zu wenig Pellets
+  mode: single
+- id: '1724971646422'
+  alias: 'Internet Bandbreite niedrig '
+  description: Senden einer Benachrichtigung wenn die Bandbreite unter 20 MBit/sec
+    fällt
+  triggers:
+    - type: data_rate
+      device_id: 62ff655ac9091693582286b73a3ed483
+      entity_id: ca8ecd815536c5e85c6700b7d25074eb
+      domain: sensor
+      below: 20
+      trigger: device
+  conditions: []
+  actions:
+    - action: notify.matthias_mobile
+      data:
+        message: Die Download-Geschwindigkeit ist unter 20 MBit/sec gefallen!
+        title: 'Warnung Internetzugang '
+    - action: notify.persistent_notification
+      metadata: {}
+      data:
+        message: Die Download-Geschwindigkeit ist unter 20 MBit/sec gefallen!
+        title: Warnung Internetzugang
+  mode: single
+- id: '1725291135472'
+  alias: Begrüßung und Info zur Müllabfuhr
+  description: "Begrüßung der heimkehrenden Person und ggf Informationen: \n- wenn
+    am kommenden Tag Müll abgeholt wird"
+  triggers:
+    - entity_id: person.matthias
+      zone: zone.home
+      event: enter
+      trigger: zone
+      enabled: false
+    - entity_id: person.sylvie
+      zone: zone.home
+      event: enter
+      trigger: zone
+      enabled: false
+    - trigger: state
+      entity_id:
+        - sensor.home_sylvie_fahrtrichtung
+      from: towards
+      to: arrived
+      for:
+        hours: 0
+        minutes: 0
+        seconds: 30
+    - trigger: state
+      entity_id:
+        - sensor.home_matthias_fahrtrichtung
+      from: towards
+      to: arrived
+      for:
+        hours: 0
+        minutes: 0
+        seconds: 30
+  conditions:
+    - condition: template
+      value_template: "{% set hour = now().hour %} {% set day_of_week = now().weekday()
+        %} {% if day_of_week in range(0, 5) and (hour >= 23 or hour < 7) %}\n  false\n{%
+        else %}\n  true\n{% endif %}\n"
+  actions:
+    - delay:
+        minutes: 4
+    - variables:
+        other_person: "{% if trigger.entity_id == 'person.matthias' %}\n  person.sylvie\n{%
+          else %}\n  person.matthias\n{% endif %}\n"
+        arrival_time: "{% set last_arrived = states[other_person].last_changed %}   {%
+          if last_arrived %}\n  {% set last_arrived_dt = as_datetime(last_arrived) %}\n
+          \ {% set time_diff = (now() - last_arrived_dt).total_seconds() | int %}\n
+          \ {% if time_diff < 14400 %}\n    {% set hours = time_diff // 3600 %}\n    {%
+          set minutes = (time_diff % 3600) // 60 %}\n    {% if hours > 0 %}\n      {{
+          hours }} Stunden und {{ minutes }} Minuten\n    {% else %}\n      {{ minutes
+          }} Minuten\n    {% endif %}\n  {% else %}\n    länger als 4 Stunden\n  {%
+          endif %}\n{% else %}\n  unbekannt\n{% endif %}\n"
+        time_of_day: "{% if now().hour >= 5 and now().hour < 12 %}\n  Guten Morgen\n{%
+          elif now().hour >= 12 and now().hour < 18 %}\n  Guten Nachmittag\n{% else
+          %}\n  Guten Abend\n{% endif %}\n"
+        holiday_message: "{% set today = now().strftime('%m-%d') %} {% set weekday =
+          now().strftime('%A') %} {% if today == '01-01' %}\n  Frohes neues Jahr!\n{%
+          elif today == '01-06' %}\n  Heilige Drei Könige\n{% elif today == '04-17'
+          %}\n  Gründonnerstag\n{% elif today == '04-18' %}\n  Karfreitag\n{% elif today
+          == '04-21' %}\n  Ostermontag\n{% elif today == '05-29' %}\n  Christi Himmelfahrt\n{%
+          elif today == '06-09' %}\n  Pfingstmontag\n{% elif today == '06-19' %}\n  Fronleichnam\n{%
+          elif today == '10-03' %}\n  Tag der Deutschen Einheit\n{% elif today == '10-31'
+          %}\n  Reformationstag\n{% elif today == '11-01' %}\n  Allerheiligen\n{% elif
+          heute == '12-24' %}\n  Frohe Weihnachten!\n{% elif heute == '12-25' %}\n  Frohe
+          Weihnachten!\n{% elif heute == '12-26' %}\n  Frohe Weihnachten!\n{% elif heute
+          == '12-31' %}\n  Einen guten Rutsch ins neue Jahr!\n{% elif weekday == 'Saturday'
+          %}\n  Schönes Wochenende!\n{% elif weekday == 'Sunday' %}\n  Einen erholsamen
+          Sonntag!\n{% else %}\n  Willkommen Zuhause!\n{% endif %}\n"
+    - data:
+        message: "{{ time_of_day }}, {{ trigger.entity_id.split('.')[1] }}! {% if arrival_time
+          != 'länger als 4 Stunden' and arrival_time != 'unbekannt' %}\n  Die andere
+          Person ist vor {{ arrival_time }} nach Hause gekommen.\n{% endif %} {{ holiday_message
+          }}\n"
+        data:
+          type: tts
+      action: notify.alexa_media_eg_gang
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ states('sensor.abfallnaechster') | int == 1 and states('sensor.abfallnaechstertype')
+                is not none }}
+
+                "
+          sequence:
+            - data:
+                message: "Der nächste Mülltyp, der abgeholt wird, ist: **{{ states('sensor.abfallnaechstertype')
+                  }}** in {{ states('sensor.abfallnaechster') }} Tag.
+
+                  "
+                data:
+                  type: tts
+              action: notify.alexa_media_eg_gang
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: input_boolean.debugging_modus
+              state: 'on'
+          sequence:
+            - data:
+                message: 'Automatisierung wurde ausgelöst von {{ trigger.entity_id }} um
+                  {{ now() }}. Die andere Person kam vor {{ arrival_time }} nach Hause.
+
+                  '
+                level: info
+              action: system_log.write
+  mode: single
+- id: '1726499035581'
+  alias: '[Action] Matthias oder Sylvie Ankunftszeit zuhause speichern'
+  description: ''
+  triggers:
+    - entity_id:
+        - person.matthias
+      to: home
+      trigger: state
+    - entity_id:
+        - person.sylvie
+      from: home
+      trigger: state
+  conditions: []
+  actions:
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: person.matthias
+              state: home
+          sequence:
+            - action: input_text.set_value
+              metadata: {}
+              data:
+                value: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+              target:
+                entity_id: input_text.matthias_zuhause_angekommen
+        - conditions:
+            - condition: state
+              entity_id: person.sylvie
+              state: home
+          sequence:
+            - action: input_text.set_value
+              metadata: {}
+              data:
+                value: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+              target:
+                entity_id: input_text.sylvie_zuhause_angekommen
+  mode: single
+- id: '1726502881321'
+  alias: V-Klasse Tankwarnung (v1.1.0)
+  description: 'v1.1.0 – Sendet nur einmal eine Benachrichtigung, wenn die Reichweite
+    unter 50 km fällt. Nach 4 Stunden wird die Warnung automatisch wieder aktiviert.
+
+    '
+  triggers:
+    - entity_id: sensor.bl_bo_2222_range_liquid
+      below: 50
+      trigger: numeric_state
+  conditions:
+    - condition: state
+      entity_id: input_boolean.vklasse_tankwarnung_aktiv
+      state: 'on'
+  actions:
+    - data:
+        title: V-Klasse – Tankwarnung
+        message: 'Die Reichweite der V-Klasse beträgt weniger als 50 km. Bitte bald
+          tanken.
+
+          '
+      action: notify.mobile_app_s21_jt4yf9t106
+    - target:
+        entity_id: input_boolean.vklasse_tankwarnung_aktiv
+      action: input_boolean.turn_off
+    - target:
+        entity_id: timer.vklasse_tankwarnung_reset
+      action: timer.start
+  mode: single
+- id: '1726503817777'
+  alias: GLA Reichweitenwarnung
+  description: ''
+  triggers:
+    - entity_id:
+        - sensor.mercedes_gla_gesamtreichweite
+      below: 50
+      trigger: numeric_state
+  conditions:
+    - condition: numeric_state
+      entity_id: sensor.bb_sp_219_e_ignition_state
+      below: 1
+  actions:
+    - action: notify.matthias_mobile
+      metadata: {}
+      data:
+        message:
+          Die Gesamtreichweite deines Fahrzeugs beträgt nur noch {{     states('sensor.mercedes_gla_gesamtreichweite')
+          }} km. Bitte laden oder tanken.
+        data:
+          actions:
+            - action: glaReichweitebestaetigt
+              title: Bestätigt
+            - action: glaReicheweiteignorieren
+              title: Ignorieren
+          tag: glaReichweitenWarnung
+  mode: single
+- id: '1726506362133'
+  alias: 'GLA Ladeunterbrechung Zuhause '
+  description: ''
+  triggers:
+    - entity_id:
+        - sensor.bb_sp_219_e_charging_power
+      to: '0'
+      for:
+        hours: 0
+        minutes: 5
+        seconds: 0
+      trigger: state
+  conditions:
+    - condition: state
+      entity_id: device_tracker.bb_sp_219_e_device_tracker
+      state: home
+    - condition: state
+      entity_id: sensor.bb_sp_219_e_ignition_state
+      state: '0'
+    - condition: numeric_state
+      entity_id: sensor.bb_sp_219_e_state_of_charge
+      below: 90
+  actions:
+    - action: notify.matthias_mobile
+      metadata: {}
+      data:
+        message: Der Ladevorgang wurde unterbrochen, bitte prüfen und neu starten
+        title: 'Ladevorgang '
+  mode: single
+- id: '1726513014011'
+  alias: GLA Tankhinweis bei weniger als 20
+  description: Das Fahrzeug ist in der Nähe der Tankstelle und der Tankinhalt ist
+    kleiner als 20 %
+  triggers:
+    - trigger: numeric_state
+      entity_id:
+        - sensor.bb_sp_219_e_ignition_state
+      below: 1
+  conditions:
+    - condition: and
+      conditions:
+        - condition: zone
+          entity_id: device_tracker.bb_sp_219_e_device_tracker
+          zone: zone.tankstelle
+        - condition: zone
+          entity_id: device_tracker.s21_jt4yf9t106
+          zone: zone.tankstelle
+        - condition: numeric_state
+          entity_id: sensor.bb_sp_219_e_fuel_level
+          below: 19.9
+  actions:
+    - action: notify.mobile_app_s21_jt4yf9t106
+      metadata: {}
+      data:
+        message: Dein Fahrzeug ist in der Nähe einer Tankstelle/Ladestation und benötigt
+          Treibstoff/Elektrizität.
+        title: 'GLA Tankhinweis '
+  mode: single
+- id: '1726594282174'
+  alias: '[Status] Ermittle Fahrer für die V-Klasse bei Bewegung (Nähe zum Fahrzeug)'
+  description: ''
+  triggers:
+    - entity_id:
+        - device_tracker.bl_bo_2222_device_tracker
+      from: home
+      to: not_home
+      trigger: state
+    - entity_id:
+        - device_tracker.bl_bo_2222_device_tracker
+      from: not_home
+      to: not_home
+      trigger: state
+  conditions: []
+  actions:
+    - variables:
+        dist_sylvie: '{{ distance(states.device_tracker.sm_g975f, states.device_tracker.bl_bo_2222_device_tracker)
+          }}'
+        dist_matthias:
+          '{{ distance(states.device_tracker.s21_jt4yf9t106, states.device_tracker.bl_bo_2222_device_tracker)
+          }}'
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: '{{ dist_matthias < 0.05 and dist_matthias < dist_sylvie }}'
+          sequence:
+            - action: input_text.set_value
+              target:
+                entity_id: input_text.fahrer_vklasse
+              data:
+                value: Matthias
+        - conditions:
+            - condition: template
+              value_template: '{{ dist_sylvie < 0.05 and dist_sylvie < dist_matthias }}'
+          sequence:
+            - action: input_text.set_value
+              target:
+                entity_id: input_text.fahrer_vklasse
+              data:
+                value: Sylvie
+        - conditions:
+            - condition: template
+              value_template: '{{ dist_matthias >= 0.05 and dist_sylvie >= 0.05 }}'
+          sequence:
+            - action: input_text.set_value
+              target:
+                entity_id: input_text.fahrer_vklasse
+              data:
+                value: Unbekannt
+  mode: single
+- id: '1726596244510'
+  alias: '[Status] Ermittle Fahrer für den GLA bei Bewegung (Nähe zum Fahrzeug)'
+  description: ''
+  triggers:
+    - entity_id:
+        - device_tracker.bb_sp_219_e_device_tracker
+      to: not_home
+      from: home
+      trigger: state
+    - entity_id:
+        - device_tracker.bb_sp_219_e_device_tracker
+      from: not_home
+      to: not_home
+      trigger: state
+  conditions: []
+  actions:
+    - variables:
+        dist_matthias:
+          '{{ distance(states.device_tracker.s21_jt4yf9t106, states.device_tracker.bb_sp_219_e_device_tracker)
+          }}'
+        dist_sylvie: '{{ distance(states.device_tracker.sm_g975f, states.device_tracker.bb_sp_219_e_device_tracker)
+          }}'
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: '{{ dist_matthias < 0.05 and dist_matthias < dist_sylvie }}'
+          sequence:
+            - action: input_text.set_value
+              target:
+                entity_id: input_text.fahrer_gla
+              data:
+                value: Matthias
+        - conditions:
+            - condition: template
+              value_template: '{{ dist_sylvie < 0.05 and dist_sylvie < dist_matthias }}'
+          sequence:
+            - action: input_text.set_value
+              target:
+                entity_id: input_text.fahrer_gla
+              data:
+                value: Sylvie
+        - conditions:
+            - condition: template
+              value_template: '{{ dist_matthias >= 0.05 and dist_sylvie >= 0.05 }}'
+          sequence:
+            - action: input_text.set_value
+              target:
+                entity_id: input_text.fahrer_gla
+              data:
+                value: Unbekannt
+  mode: single
+- id: '1726598236296'
+  alias: Lidl – Partner informieren bei Ankunft (v2.2.1)
+  description: 'Erkennt werktags zwischen 7–21 Uhr, wenn jemand bei Lidl ankommt und
+    der Partner nicht dort ist. Es folgt eine Push-Nachricht mit Antwort-Buttons und
+    optionalem Timeout. Wenn Bring! aktiv ist, wird keine Benachrichtigung versendet.
+
+    '
+  triggers:
+    - entity_id: sensor.lidl_dotterhausen_bewegung_von_sylvie
+      from: towards
+      to: arrived
+      for: 00:02:00
+      id: sylvie
+      trigger: state
+    - entity_id: sensor.lidl_dotterhausen_bewegung_von_matthias
+      from: towards
+      to: arrived
+      for: 00:02:00
+      id: matthias
+      trigger: state
+  conditions:
+    - condition: state
+      entity_id: schedule.zeitplan_lidl
+      state: 'on'
+    - condition: template
+      value_template: "{% if trigger.id == 'sylvie' %}\n  {{ states('person.matthias')
+        != 'zone.lidl_dotterhausen' }}\n{% elif trigger.id == 'matthias' %}\n  {{ states('person.sylvie')
+        != 'zone.lidl_dotterhausen' }}\n{% else %} false {% endif %}\n"
+  actions:
+    - delay:
+        minutes: "{{ states('input_number.lidl_wartezeit') | int }}"
+    - condition: template
+      value_template: "{% if trigger.id == 'sylvie' %}\n  {{ is_state('person.sylvie',
+        'zone.lidl_dotterhausen') }}\n{% elif trigger.id == 'matthias' %}\n  {{ is_state('person.matthias',
+        'zone.lidl_dotterhausen') }}\n{% else %} false {% endif %}\n"
+    - variables:
+        benutzer_id: "{% if trigger.id == 'sylvie' %}\n  mobile_app_sm_g975f\n{% elif
+          trigger.id == 'matthias' %}\n  mobile_app_s21_jt4yf9t106\n{% endif %}\n"
+        name: '{{ trigger.id | title }}'
+    - data:
+        title: "\U0001F6D2 {{ name }} ist bei Lidl"
+        message: Noch etwas nötig?
+        data:
+          tag: lidl_info
+          actions:
+            - action: lidl_yes
+              title: ✅ Ja, bitte!
+            - action: lidl_no
+              title: ❌ Nein, alles gut
+      action: notify.{{ benutzer_id }}
+    - wait_for_trigger:
+        - event_type: mobile_app_notification_action
+          event_data:
+            tag: lidl_info
+          trigger: event
+      timeout: 00:02:00
+      continue_on_timeout: true
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ wait.trigger is defined and wait.trigger.event.data.action
+                == 'lidl_yes' }}
+
+                "
+          sequence:
+            - data:
+                title: "\U0001F6CD️ Partner braucht etwas"
+                message: 'Antwort: JA – bitte Bring! checken oder kurz Rücksprache halten.'
+              action: persistent_notification.create
+        - conditions:
+            - condition: template
+              value_template: "{{ wait.trigger is defined and wait.trigger.event.data.action
+                == 'lidl_no' }}
+
+                "
+          sequence:
+            - data:
+                title: Lidl bestätigt
+                message: 'Antwort: Nein – alles gut.'
+              action: persistent_notification.create
+        - conditions:
+            - condition: template
+              value_template: '{{ wait.trigger is not defined }}
+
+                '
+          sequence:
+            - data:
+                title: ⏱️ Keine Rückmeldung
+                message: Keine Antwort – evtl. Bring! oder Partner direkt fragen.
+              action: persistent_notification.create
+  mode: single
+- id: '1728166985266'
+  alias: 'Personen Zoneninformationen '
+  description: ''
+  use_blueprint:
+    path: panhans/zone_notification_extended.yaml
+    input:
+      persons:
+        - person.cedric
+        - person.sylvie
+        - person.denise_celine
+      zones:
+        - zone.home
+        - zone.kg_schomberg
+        - zone.oma_lotti
+        - zone.aok_balingen
+        - zone.wohnung_nadja
+        - zone.wohnung_nina
+        - zone.wohnung_nise
+        - zone.riess_balingen
+        - zone.riess_automobile_rottweil
+      duration:
+        hours: 0
+        minutes: 2
+        seconds: 0
+      notify_device: 4428c0a3993c13006dbcd260b4679e6d
+      title_arriving: '{{ person }} angekommen bei {{ zone }}'
+      message_arriving: '{{ person }} ist vor kurzem bei {{ zone }} angekommen.'
+      title_leaving: '{{ person }} hat {{ zone }} verlassen '
+      message_leaving: Vor wenigen Minuten hat {{ person }} {{ zone }} verlassen.
+      tag: tagZoneNotification
+      custom_conditions:
+        - condition: state
+          entity_id: schedule.zeitplan_benachrichtigungen
+          state: 'on'
+- id: '1728168385444'
+  alias: 'Matthias verlässt das Tierheim '
+  description: ''
+  use_blueprint:
+    path: panhans/zone_notification_extended.yaml
+    input:
+      persons:
+        - person.matthias
+      zones:
+        - zone.tierheim_rottweil
+      notify_device: 4428c0a3993c13006dbcd260b4679e6d
+      zones_leaving: []
+      custom_conditions_leaving:
+        - condition: time
+          after: '10:30:00'
+          weekday:
+            - sun
+            - mon
+            - tue
+            - wed
+            - thu
+            - fri
+            - sat
+      duration:
+        hours: 0
+        minutes: 1
+        seconds: 0
+- id: '1731137393501'
+  alias: Backups Error
+  description: ''
+  use_blueprint:
+    path: jcwillox/notify_auto_backup.yaml
+    input:
+      notify_hass: true
+      devices:
+        - 4428c0a3993c13006dbcd260b4679e6d
+      only_after: 00:00:00
+      events:
+        - auto_backup.backup_failed
+        - auto_backup.backup_successful
+      only_before: '12:00:00'
+- id: '1731881057809'
+  alias: Batterie schwach
+  description: ''
+  use_blueprint:
+    path: Blackshome/low-battery-notifications-and-actions.yaml
+    input:
+      include_time: time_enabled
+      time: '10:00:00'
+      exclude_sensors:
+        entity_id:
+          - sensor.sm_g975f_car_battery
+          - sensor.sm_g975f_car_fuel
+          - sensor.xiaomi_pad5_car_battery
+          - sensor.bb_sp_219_e_state_of_charge
+          - sensor.xiaomi_pad5_car_fuel
+          - binary_sensor.hintertur_battery_plus_low
+          - sensor.hintertur_battery_plus
+          - binary_sensor.esszimmer_links_batterie
+          - binary_sensor.esszimmer_rechts_batterie
+          - sensor.smoke_detector_maximum_capacity
+          - binary_sensor.smoke_detector_battery_is_disconnected
+          - binary_sensor.rauchmelder_schlafzimmer_battery_low
+          - binary_sensor.smoke_detector_battery_temperature_is_low
+          - binary_sensor.smoke_detector_fluid_is_low
+          - binary_sensor.smoke_detector_overheating
+          - binary_sensor.smoke_detector_rechargeable
+          - binary_sensor.smoke_detector_used_as_backup
+          - binary_sensor.rauchmelder_schlafzimmer_low_battery_level
+          - binary_sensor.s21_jt4yf9t106_battery_plus_low
+          - binary_sensor.roborock_s7_battery_low
+          - sensor.roborock_s7_battery_plus
+          - sensor.s21_jt4yf9t106_battery_plus
+          - binary_sensor.schlafzimmer_batterie
+          - binary_sensor.sm_g975f_battery_plus_low
+          - binary_sensor.sm_t825_battery_plus_low
+          - sensor.sm_g975f_battery_plus
+          - binary_sensor.sm_t825_battery_plus_low_2
+          - sensor.sm_t825_battery_plus
+          - sensor.sm_t825_battery_plus_2
+          - sensor.smoke_detector_battery_plus
+          - sensor.smoke_detector_charging_status
+          - sensor.smoke_detector_recharge_or_replace
+          - sensor.smoke_detector_temperature
+          - binary_sensor.tp357_gang_battery_plus_low
+          - sensor.tp357_gang_battery_plus
+          - binary_sensor.wohnzimmer_sofa_batterie
+          - binary_sensor.wohnzimmer_carport_batterie
+          - binary_sensor.wc_batterie
+          - binary_sensor.va4174729472_batterie
+          - binary_sensor.va3805696256_batterie
+          - binary_sensor.va2692374528_batterie
+          - binary_sensor.va0567693568_batterie
+          - binary_sensor.va1450926080_batterie
+          - binary_sensor.va2389397760_batterie
+      include_easy_notify: enable_easy_okay_notify
+      include_persistent_notification: enable_persistent_okay_notification
+      notify_device:
+        - 4428c0a3993c13006dbcd260b4679e6d
+      notify_interruption_level: active
+      notify_title: Batterie Warnung
+      notify_okay_message: YES! Alle Batterien sind ok:)
+      notify_action_buttons: enable_to_do_list_button_and_confirmation
+      notify_message: sensors
+- id: '1732103672952'
+  alias: Statusmeldungen der Waschmaschine
+  description: ''
+  use_blueprint:
+    path: Blackshome/appliance-notifications.yaml
+    input:
+      power_sensor: sensor.waschmaschinenpower
+      running_dead_zone: 90
+      include_start_notify: enable_start_notify_options
+      start_notify_device:
+        - 4428c0a3993c13006dbcd260b4679e6d
+        - ae6d37123707b6ac18098bee9f9b818e
+        - 3633d8575da5122051c1ac0615066dbd
+      start_title: Info Waschmaschine
+      start_message: Der Waschgang wurde gestartet.
+      include_end_notify: enable_end_notify_options
+      end_notify_device:
+        - 4428c0a3993c13006dbcd260b4679e6d
+        - ae6d37123707b6ac18098bee9f9b818e
+        - 3633d8575da5122051c1ac0615066dbd
+      end_message_title: Info Waschmaschine
+      end_message: Hallo ich bin´s deine Waschmaschine, der Waschgang ist beendet.
+      include_duration_tracking: enable_duration_tracking
+      end_message_duration_tracking: Waschgangdauer
+      include_watchdog: enable_watchdog
+      watchdog_timeframe:
+        hours: 4
+        minutes: 0
+        seconds: 0
+      include_custom_actions:
+        - enable_start_custom_actions
+        - enable_end_custom_actions
+      start_custom_actions:
+        - action: notify.alexa_media_eg_gang
+          metadata: {}
+          data:
+            message: Hallo ich bin´s deine Waschmaschine, ich habe den Waschgang gestartet
+              und sage dir dann Bescheid wenn er fertig ist. Bis nachher, Tschüssi
+        - action: notify.alexa_media_matthias_echo_dot
+          metadata: {}
+          data:
+            message: 'Waschgang wurde gestartet '
+      end_custom_actions:
+        - action: notify.alexa_media_eg_gang
+          metadata: {}
+          data:
+            message: 'Hallo, ich bin´s wieder deine Waschmaschine. Ich bin fertig mit
+              dem Waschgsng, bitte die Wäsche holen oder in den Trockner damit. Habe
+              fertig! '
+        - action: persistent_notification.create
+          metadata: {}
+          data:
+            message: 'Hallo, ich bin´s wieder deine Waschmaschine. Ich bin fertig mit
+              dem Waschgsng, bitte die Wäsche holen oder in den Trockner damit. Habe
+              fertig! '
+            title: Info Waschmaschinenstatus
+      end_appliance_power: 4
+      end_time_delay: 2
+      start_time_delay: 1
+      end_repeat_count: 1
+      start_notify_tag: Washing
+      end_notify_tag: 'Washing '
+      include_power_tracking: disable_power_tracking
+      service_reminder_cycles: 10
+      service_reminder_counter_helper: counter.waschmaschine_reinigungszahler
+      service_reminder_end_message: ⚠️ Es ist Zeit für die Reinigung der Waschmaschine
+      include_service_reminder: enable_service_reminder_and_notify
+      watchdog_notify_tag: Washing-watchdog
+      include_time: time_enabled
+      after_time: 06:00:00
+      before_time: '10:00:00'
+- id: '1735424182453'
+  alias: Action notification
+  description: ''
+  triggers: []
+  conditions: []
+  actions:
+    - action: notify.matthias_mobile
+      metadata: {}
+      data:
+        message: Lichter schalten?
+        title: Lichter
+        data:
+          actions:
+            - action: licht_wohnzimmer_aus
+              title: Licht aus
+            - action: licht_wohnzimmer_ein
+              title: Licht ein
+  mode: single
+- id: '1735481137881'
+  alias: Abfalltermine Erinnerung Response
+  description: ''
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+      event_data:
+        action: muell_erledigt
+  conditions: []
+  actions:
+    - action: notify.matthias_mobile
+      metadata: {}
+      data:
+        message: clear_notification
+        data:
+          tag: muell_benachrichtigung
+  mode: single
+- id: '1735570642509'
+  alias: RAPP Bestellerinnerung
+  description: Basierend auf dem Kalender mit den Lieferterminen von Rapp
+  use_blueprint:
+    path: Blackshome/calendar-notifications-and-actions.yaml
+    input:
+      calendar: calendar.rapp_liefertermine
+      include_calendar_trigger: disable_key_word
+      start_calendar_offset:
+        hours: -6
+        minutes: 0
+        seconds: 0
+        days: -4
+      include_start_notify: enable_start_notify_options
+      include_start_auto_actions:
+        - enable_start_action_1
+      include_start_action_buttons: []
+      start_message: Was wollen wir für diesen {{ trigger.calendar_event.description
+        }} bestellen?
+      start_notify_device:
+        - 94c1044394149584f8e01c1601caaa2a
+        - 4428c0a3993c13006dbcd260b4679e6d
+      start_action_1: []
+      start_action_2:
+        - action: notify.alexa_media_eg_gang
+          metadata: {}
+          data:
+            message: Was wollen wir für diesen {{ trigger.calendar_event.description
+              }} bestellen?
+- id: '1735595202433'
+  alias: Fahrzeug Warnung bei niedrigem Tankstand und Batterielevel
+  description: 'Benachrichtigung wenn die Fahrzeuge Zuhause stehen:
+
+    - V-Klasse Tankinhalt < 15%
+
+    - EQB Hochvoltbatterie < 20%'
+  triggers:
+    - trigger: numeric_state
+      entity_id:
+        - sensor.bl_bo_2222_fuel_level
+        - sensor.bb_sp_219_e_fuel_level
+      below: 15
+    - trigger: numeric_state
+      entity_id:
+        - sensor.bb_s_2126e_state_of_charge
+      below: 20
+  conditions:
+    - condition: device
+      device_id: 571afb8a0326dc0e473b464c70011bf6
+      domain: device_tracker
+      entity_id: 32f8f8d322ba1879f8f00fcb992dc017
+      type: is_home
+    - condition: device
+      device_id: dc75b83ef8717e7d5d2f33f66925d850
+      domain: device_tracker
+      entity_id: 54af74b43edcda7f43dddc76ea799e0b
+      type: is_home
+  actions:
+    - action: notify.matthias_ios
+      metadata: {}
+      data:
+        message: "{% if trigger.entity_id == 'sernsor.bl_bo_22_fuel_level' %}\n  Die
+          V-Klasse hat nur noch {{ states('sensor.bl_bo_2222_fuel_level') }}% Tankinhalt,\n
+          \ und befindet sich Zuhause. Bitte das Fahrzeug bald tanken.\n{% elif trigger.entity_id
+          == 'sensor.bb_sp_219_e_fuel_level' %}\n  Der GLA Plugin-Hybrid hat nur noch
+          {{ states('sensor.bb_sp_219_e_fuel_level') }}% Tankinhalt,\n  und befindet
+          sich Zuhause. Bitte das Fahrzeug bald tanken.\n{% elif trigger.entity_id ==
+          'sensor.bb_sp_219_e_state_of_charge' %}\n  Die Hochvoltbatterie des GLA hat
+          nur noch {{ states('sensor.bb_sp_219_e_state_of_charge') }}%.\n  Bitte das
+          Ladekabel einstecken. \n{% endif %}\ndata: \n  actions: \n    - action: fuellevelaknowledge\n
+          \     titel: Ok\n  tag: tagfuellevel"
+  mode: single
+- id: '1735599418843'
+  alias: GLA Batterielevel Überwachung - Response
+  description: ''
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+      event_data:
+        action: ladenbestaetigt
+  conditions: []
+  actions:
+    - action: notify.matthias_mobile
+      metadata: {}
+      data:
+        message: clear_notification
+        data:
+          tag: hvladen
+  mode: single
+- id: '1735641022352'
+  alias: Letzte Person hat Zuhause verlassen
+  description: 'Sende eine Nachricht wenn niemand im EG anwesend ist '
+  triggers:
+    - trigger: state
+      entity_id:
+        - person.matthias
+        - person.sylvie
+      to: not_home
+      from: home
+  conditions:
+    - condition: state
+      entity_id: person.matthias
+      state: not_home
+    - condition: state
+      entity_id: person.sylvie
+      state: not_home
+  actions:
+    - action: notify.parents_mobile
+      metadata: {}
+      data:
+        message: Es ist niemand mehr im EG zuhause. Soll der Abwesenheitsmodus aktiviert
+          werden?
+        title: 'Keiner mehr Zuhause '
+        data:
+          actions:
+            - action: activatAwayMode
+              title: Ja
+            - action: ignoreAwayMode
+              title: Nein
+          tag: tagAwayMode
+  mode: single
+- id: '1737495822775'
+  alias: Systemauslastungsueberwachung
+  description: ''
+  triggers:
+    - trigger: numeric_state
+      entity_id:
+        - sensor.localhost_cpu_auslastung
+      above: 80
+      for:
+        hours: 0
+        minutes: 2
+        seconds: 0
+    - trigger: numeric_state
+      entity_id:
+        - sensor.localhost_speicherauslastung
+      above: 80
+      for:
+        hours: 0
+        minutes: 5
+        seconds: 0
+    - trigger: numeric_state
+      entity_id:
+        - sensor.localhost_data_datentragernutzung
+      above: 80
+      for:
+        hours: 0
+        minutes: 5
+        seconds: 0
+  conditions: []
+  actions:
+    - action: notify.matthias_mobile
+      metadata: {}
+      data:
+        message: "Warnung: Ein kritischer Systemzustand wurde erreicht! {% if     trigger.entity_id
+          == 'sensor.localhost_cpu_auslastung' %} CPU-Auslastung:     {{ states('sensor.localhost_cpu_auslastung')
+          }}% {% elif trigger.entity_id     == 'sensor.localhost_speicherauslastung'
+          %} RAM-Nutzung: {{     states('sensor.localhost_speicherauslastung') }}%
+          {% elif trigger.entity_id     == 'sensor.localhost_data_datentragernutzung'
+          %} Festplattennutzung: {{     states('sensor.localhost_data_datentragernutzung')
+          }}% {% endif %}"
+  mode: single
+- id: '1749146556779'
+  alias: Benachrichtigung vor Ankunft einer Person (v2.2.0)
+  description: 'Erkennt Annäherung an Zuhause anhand Entfernung + Richtung, benachrichtigt
+    den jeweils anderen zwischen 6–22 Uhr – ohne doppelte Nachrichten.
+
+    '
+  triggers:
+    - entity_id: sensor.home_sylvie_entfernung
+      below: 1000
+      for: 00:00:15
+      id: sylvie
+      trigger: numeric_state
+    - entity_id: sensor.home_matthias_entfernung
+      below: 1000
+      for: 00:00:15
+      id: matthias
+      trigger: numeric_state
+  conditions:
+    - condition: time
+      after: 06:00:00
+      before: '22:00:00'
+  actions:
+    - choose:
+        - conditions:
+            - condition: trigger
+              id: sylvie
+            - condition: state
+              entity_id: sensor.home_sylvie_fahrtrichtung
+              state: towards
+              for: 00:00:20
+            - condition: state
+              entity_id: input_boolean.ankunftsbenachrichtigung_aktiv_sylvie
+              state: 'off'
+            - condition: template
+              value_template: "{{ (as_timestamp(now()) - as_timestamp(states('input_datetime.letzte_ankunft_matthias')))
+                > 120 }}
+
+                "
+          sequence:
+            - data:
+                title: "\U0001F3E0 Auf dem Weg"
+                message: Sylvie ist fast zuhause.
+              action: notify.matthias_mobile
+            - entity_id: input_boolean.ankunftsbenachrichtigung_aktiv_sylvie
+              action: input_boolean.turn_on
+            - target:
+                entity_id: input_datetime.letzte_ankunft_sylvie
+              data:
+                datetime: '{{ now().isoformat() }}'
+              action: input_datetime.set_datetime
+        - conditions:
+            - condition: trigger
+              id: matthias
+            - condition: state
+              entity_id: sensor.home_matthias_fahrtrichtung
+              state: towards
+              for: 00:00:15
+            - condition: state
+              entity_id: input_boolean.ankunftsbenachrichtigung_aktiv_matthias
+              state: 'off'
+            - condition: template
+              value_template: "{{ (as_timestamp(now()) - as_timestamp(states('input_datetime.letzte_ankunft_sylvie')))
+                > 120 }}
+
+                "
+          sequence:
+            - data:
+                title: "\U0001F3E0 Auf dem Weg"
+                message: Matthias ist fast zuhause.
+              action: notify.sylvie_mobile
+            - entity_id: input_boolean.ankunftsbenachrichtigung_aktiv_matthias
+              action: input_boolean.turn_on
+            - target:
+                entity_id: input_datetime.letzte_ankunft_matthias
+              data:
+                datetime: '{{ now().isoformat() }}'
+              action: input_datetime.set_datetime
+  mode: single
+- id: '1750349911367'
+  alias: V-Klasse Tankwarnung freigeben
+  description: 'Aktiviert die Tankwarnung 4 Stunden nach der letzten Benachrichtigung
+    automatisch wieder.
+
+    '
+  triggers:
+    - event_type: timer.finished
+      event_data:
+        entity_id: timer.vklasse_tankwarnung_reset
+      trigger: event
+  actions:
+    - target:
+        entity_id: input_boolean.vklasse_tankwarnung_aktiv
+      action: input_boolean.turn_on
+- id: '1750353424366'
+  alias: V-Klasse Warnung – Später erinnern
+  description: ''
+  triggers:
+    - event_type: mobile_app_notification_action
+      event_data:
+        action: REMIND_LATER
+      trigger: event
+  actions:
+    - entity_id: timer.vklasse_warnung_erinnerung
+      action: timer.start
+    - data:
+        name: V-Klasse – Warnung
+        message: 'Benutzer wählte: Später erinnern (1h)'
+      action: logbook.log
+- id: '1750353507679'
+  alias: V-Klasse Warnung – Erinnerung erneut senden
+  description: ''
+  triggers:
+    - event_type: timer.finished
+      event_data:
+        entity_id: timer.vklasse_warnung_erinnerung
+      trigger: event
+  actions:
+    - data:
+        title: V-Klasse – Erinnerung
+        message: 'Erinnerung: Bitte prüfe die gemeldete Fahrzeugwarnung erneut.'
+      action: notify.mobile_app_s21_jt4yf9t106
+- id: '1750353735728'
+  alias: V-Klasse Warnung – Service buchen
+  description: ''
+  triggers:
+    - event_type: mobile_app_notification_action
+      event_data:
+        action: SERVICE
+      trigger: event
+  actions:
+    - data:
+        name: V-Klasse – Warnung
+        message: 'Benutzer wählte: Service buchen – bitte Termin organisieren.'
+      action: logbook.log
+- id: '1750353808016'
+  alias: V-Klasse Warnung – Ignorieren
+  description: ''
+  triggers:
+    - event_type: mobile_app_notification_action
+      event_data:
+        action: IGNORE
+      trigger: event
+  actions:
+    - entity_id: input_boolean.vklasse_warnung_gesperrt
+      action: input_boolean.turn_on
+    - entity_id: timer.vklasse_warnung_sperre
+      action: timer.start
+    - data:
+        name: V-Klasse – Warnung
+        message: 'Benutzer wählte: Ignorieren – Sperre für 4 Stunden aktiviert.'
+      action: logbook.log
+- id: '1750353878050'
+  alias: V-Klasse Warnung – Sperre aufheben
+  description: ''
+  triggers:
+    - event_type: timer.finished
+      event_data:
+        entity_id: timer.vklasse_warnung_sperre
+      trigger: event
+  actions:
+    - entity_id: input_boolean.vklasse_warnung_gesperrt
+      action: input_boolean.turn_off
+    - data:
+        name: V-Klasse – Warnung
+        message: Warnungssperre automatisch aufgehoben.
+      action: logbook.log
+- id: '1750358634879'
+  alias: V-Klasse Zuhause – Jetzt verriegeln
+  description: ''
+  triggers:
+    - event_type: mobile_app_notification_action
+      event_data:
+        action: LOCK_NOW
+      trigger: event
+  conditions:
+    - condition: state
+      entity_id: lock.ac5340870c08e2b5b1ef4037357d1776
+      state: unlocked
+    - condition: state
+      entity_id: input_boolean.vklasse_zuhause_warnung_gesperrt
+      state: 'off'
+  actions:
+    - data:
+        entity_id: lock.ac5340870c08e2b5b1ef4037357d1776
+        code: '1234'
+      action: lock.lock
+    - data:
+        title: V-Klasse
+        message: Fahrzeug wurde per Button verriegelt.
+      action: notify.mobile_app_s21_jt4yf9t106
+- id: '1750358655214'
+  alias: V-Klasse Zuhause – Jetzt verriegeln
+  description: ''
+  triggers:
+    - event_type: mobile_app_notification_action
+      event_data:
+        action: LOCK_NOW
+      trigger: event
+  conditions:
+    - condition: state
+      entity_id: lock.ac5340870c08e2b5b1ef4037357d1776
+      state: unlocked
+    - condition: state
+      entity_id: input_boolean.vklasse_zuhause_warnung_gesperrt
+      state: 'off'
+  actions:
+    - data:
+        entity_id: lock.ac5340870c08e2b5b1ef4037357d1776
+        code: '1234'
+      action: lock.lock
+    - data:
+        title: V-Klasse
+        message: Fahrzeug wurde per Button verriegelt.
+      action: notify.mobile_app_s21_jt4yf9t106
+- id: '1750359093225'
+  alias: V-Klasse Zuhause – Warnung ignoriert
+  description: ''
+  triggers:
+    - event_type: mobile_app_notification_action
+      event_data:
+        action: IGNORE
+      trigger: event
+  actions:
+    - entity_id: input_boolean.vklasse_zuhause_warnung_gesperrt
+      action: input_boolean.turn_on
+    - entity_id: timer.vklasse_zuhause_warnung_sperre
+      action: timer.start
+    - data:
+        title: V-Klasse – Warnung ignoriert
+        message: Warnmeldungen für Zuhause für 4 Stunden deaktiviert.
+      action: notify.mobile_app_s21_jt4yf9t106
+- id: '1750359205897'
+  alias: V-Klasse Zuhause – Erinnerung erneut senden
+  description: ''
+  triggers:
+    - event_type: timer.finished
+      event_data:
+        entity_id: timer.vklasse_zuhause_warnung_erinnerung
+      trigger: event
+  conditions:
+    - condition: state
+      entity_id: lock.ac5340870c08e2b5b1ef4037357d1776
+      state: unlocked
+    - condition: state
+      entity_id: input_boolean.vklasse_zuhause_warnung_gesperrt
+      state: 'off'
+  actions:
+    - data:
+        title: V-Klasse – Erinnerung
+        message: Fahrzeug ist weiterhin nicht abgeschlossen.
+      action: notify.mobile_app_s21_jt4yf9t106
+    - data:
+        title: V-Klasse – Erinnerung
+        message: 'Nach 1 Stunde: Fahrzeug ist weiterhin offen. Bitte prüfen.'
+      action: persistent_notification.create
+- id: '1750359275948'
+  alias: V-Klasse Zuhause – Sperre aufheben
+  description: ''
+  triggers:
+    - event_type: timer.finished
+      event_data:
+        entity_id: timer.vklasse_zuhause_warnung_sperre
+      trigger: event
+  actions:
+    - entity_id: input_boolean.vklasse_zuhause_warnung_gesperrt
+      action: input_boolean.turn_off
+- id: '1750360459723'
+  alias: Abfall Erinnerung – Hauptbenachrichtigung (v2.3.0)
+  description: 'Tägliche Müll-Erinnerung mit Alexa, Push und Buttons für Reaktion,
+    Wiederholung, Cedric.
+
+    '
+  triggers:
+    - at: '20:00:00'
+      trigger: time
+  conditions:
+    - condition: numeric_state
+      entity_id: sensor.abfallnaechster
+      below: 2
+    - condition: state
+      entity_id: schedule.zeitplan_benachrichtigungen
+      state: 'on'
+    - condition: state
+      entity_id: input_boolean.abfall_erinnerung_gesperrt
+      state: 'off'
+  actions:
+    - variables:
+        muelltyp: "{{ states('sensor.abfallnaechstertype') }}"
+    - data:
+        message: 'Hallo, ich bin der Mülli! Bitte die Mülltonnen für {{ muelltyp }}
+          an die Straße stellen und restlichen Müll aus dem Haus mitnehmen. Danke –
+          dein Mülli.
+
+          '
+        data:
+          type: tts
+      action: notify.alexa_media_eg_gang
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: input_boolean.notify_enabale_alexa_dot_cedric
+              state: 'on'
+          sequence:
+            - data:
+                message: 'Cedric, bitte stell die {{ muelltyp }}-Tonne raus und nimm den
+                  Müll aus dem Zimmer mit.
+
+                  '
+                data:
+                  type: tts
+              action: notify.alexa_media_echo_cedric
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: input_boolean.notify_enabale_alexa_dot_buero
+              state: 'on'
+          sequence:
+            - data:
+                message: 'Erinnerung: {{ muelltyp }}-Tonne morgen.
+
+                  '
+                data:
+                  type: tts
+              action: notify.alexa_media_buro
+    - data:
+        title: Müll-Erinnerung
+        message: Bitte '{{ muelltyp }}' rausstellen.
+        data:
+          actions:
+            - action: muell_erledigt
+              title: ✅ Erledigt
+            - action: muell_cedric_erinnern
+              title: "\U0001F514 Cedric erinnern"
+            - action: muell_spaeter
+              title: ⏱ Später (30 Min)
+            - action: muell_noch_spaeter
+              title: ⏰ Noch später (1h)
+          tag: muell_benachrichtigung
+      action: notify.matthias_mobile
+  mode: single
+- id: '1750360535196'
+  alias: Abfall Erinnerung – Müll erledigt
+  description: ''
+  triggers:
+    - event_type: mobile_app_notification_action
+      event_data:
+        action: muell_erledigt
+      trigger: event
+  actions:
+    - entity_id: input_boolean.abfall_erinnerung_gesperrt
+      action: input_boolean.turn_on
+    - entity_id:
+        - timer.abfall_erinnerung_delay_30min
+        - timer.abfall_erinnerung_delay_1h
+      action: timer.cancel
+    - target:
+        entity_id: input_number.abfall_erinnerung_versuche
+      data:
+        value: 0
+      action: input_number.set_value
+    - data:
+        message: clear_notification
+        data:
+          tag: muell_benachrichtigung
+      action: notify.matthias_mobile
+    - data:
+        title: Müll erledigt
+        message: Alle Erinnerungen wurden gestoppt. Danke!
+      action: persistent_notification.create
+- id: '1750360581867'
+  alias: Abfall Erinnerung – Müll erledigt
+  description: ''
+  triggers:
+    - event_type: mobile_app_notification_action
+      event_data:
+        action: muell_erledigt
+      trigger: event
+  actions:
+    - entity_id: input_boolean.abfall_erinnerung_gesperrt
+      action: input_boolean.turn_on
+    - entity_id:
+        - timer.abfall_erinnerung_delay_30min
+        - timer.abfall_erinnerung_delay_1h
+      action: timer.cancel
+    - target:
+        entity_id: input_number.abfall_erinnerung_versuche
+      data:
+        value: 0
+      action: input_number.set_value
+    - data:
+        message: clear_notification
+        data:
+          tag: muell_benachrichtigung
+      action: notify.matthias_mobile
+    - data:
+        title: Müll erledigt
+        message: Alle Erinnerungen wurden gestoppt. Danke!
+      action: persistent_notification.create
+- id: '1750360647050'
+  alias: Abfall Erinnerung – Cedric erinnern
+  description: ''
+  triggers:
+    - event_type: mobile_app_notification_action
+      event_data:
+        action: muell_cedric_erinnern
+      trigger: event
+  conditions:
+    - condition: state
+      entity_id: input_boolean.notify_enabale_alexa_dot_cedric
+      state: 'on'
+  actions:
+    - variables:
+        muelltyp: "{{ states('sensor.abfallnaechstertype') }}"
+    - data:
+        message: 'Cedric, bitte denk an die {{ muelltyp }}-Tonne. Danke!
+
+          '
+        data:
+          type: tts
+      action: notify.alexa_media_echo_cedric
+    - data:
+        title: Cedric erinnert
+        message: Alexa hat Cedric erinnert.
+      action: notify.matthias_mobile
+- id: '1750360732994'
+  alias: Abfall Erinnerung – Später (30 Min)
+  description: ''
+  triggers:
+    - event_type: mobile_app_notification_action
+      event_data:
+        action: muell_spaeter
+      trigger: event
+  actions:
+    - entity_id: timer.abfall_erinnerung_delay_30min
+      action: timer.start
+    - data:
+        title: Müll-Erinnerung verschoben
+        message: In 30 Minuten wirst du erneut erinnert.
+      action: persistent_notification.create
+- id: '1750360794822'
+  alias: Abfall Erinnerung – Noch später (1h)
+  description: ''
+  triggers:
+    - event_type: mobile_app_notification_action
+      event_data:
+        action: muell_noch_spaeter
+      trigger: event
+  actions:
+    - entity_id: timer.abfall_erinnerung_delay_1h
+      action: timer.start
+    - data:
+        title: Müll-Erinnerung verschoben
+        message: In 1 Stunde wirst du erneut erinnert.
+      action: persistent_notification.create
+- id: '1750360858256'
+  alias: Abfall Erinnerung – Wiederholung senden
+  description: ''
+  triggers:
+    - event_type: timer.finished
+      event_data:
+        entity_id:
+          - timer.abfall_erinnerung_delay_30min
+          - timer.abfall_erinnerung_delay_1h
+      trigger: event
+  conditions:
+    - condition: state
+      entity_id: input_boolean.abfall_erinnerung_gesperrt
+      state: 'off'
+    - condition: numeric_state
+      entity_id: input_number.abfall_erinnerung_versuche
+      below: 2
+  actions:
+    - entity_id: input_number.abfall_erinnerung_versuche
+      action: input_number.increment
+    - variables:
+        muelltyp: "{{ states('sensor.abfallnaechstertype') }}"
+    - data:
+        title: Müll-Erinnerung (erneut)
+        message: Bitte '{{ muelltyp }}' rausstellen.
+        data:
+          actions:
+            - action: muell_erledigt
+              title: ✅ Erledigt
+            - action: muell_cedric_erinnern
+              title: "\U0001F514 Cedric erinnern"
+            - action: muell_spaeter
+              title: ⏱ Später (30 Min)
+            - action: muell_noch_spaeter
+              title: ⏰ Noch später (1h)
+          tag: muell_benachrichtigung
+      action: notify.matthias_mobile
+    - data:
+        title: Müll-Erinnerung wiederholt
+        message: Wiederholung Nr. {{ states('input_number.abfall_erinnerung_versuche')
+          }}
+      action: persistent_notification.create
+- id: '1750360990234'
+  alias: Abfall Erinnerung – Rücksetzung täglich
+  description: ''
+  triggers:
+    - at: 03:00:00
+      trigger: time
+  actions:
+    - entity_id: input_boolean.abfall_erinnerung_gesperrt
+      action: input_boolean.turn_off
+    - entity_id: input_number.abfall_erinnerung_versuche
+      data:
+        value: 0
+      action: input_number.set_value
+- id: '1750362902285'
+  alias: Reset Ankunftsbenachrichtigung Sylvie
+  description: ''
+  triggers:
+    - entity_id: device_tracker.sylvie
+      from: home
+      to: ''
+      trigger: state
+  actions:
+    - entity_id: input_boolean.ankunftsbenachrichtigung_aktiv_sylvie
+      action: input_boolean.turn_off
+- id: '1750362952801'
+  alias: Reset Ankunftsbenachrichtigung Matthias
+  description: ''
+  triggers:
+    - entity_id: device_tracker.matthias
+      from: home
+      to: ''
+      trigger: state
+  actions:
+    - entity_id: input_boolean.ankunftsbenachrichtigung_aktiv_matthias
+      action: input_boolean.turn_off
+- id: '1750363025220'
+  alias: Reset Ankunftszeitstempel täglich
+  description: ''
+  triggers:
+    - at: 04:00:00
+      trigger: time
+  actions:
+    - data:
+        datetime: '1970-01-01 00:00:00'
+      target:
+        entity_id:
+          - input_datetime.letzte_ankunft_sylvie
+          - input_datetime.letzte_ankunft_matthias
+      action: input_datetime.set_datetime
+- id: '1750365247179'
+  alias: Lidl – Antwort verarbeiten und Partner benachrichtigen
+  description: 'Reagiert auf die Antwort-Buttons der Lidl-Benachrichtigung. Erkennt,
+    wer beim Lidl ist, und sendet die Rückmeldung gezielt an dessen Smartphone. Entfernt
+    anschließend die ursprüngliche Push-Nachricht.
+
+    '
+  triggers:
+    - event_type: mobile_app_notification_action
+      event_data:
+        tag: lidl_info
+      trigger: event
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ antwort == 'lidl_yes' }}"
+          sequence:
+            - data:
+                title: "\U0001F6CD️ Partner braucht etwas"
+                message: 'Antwort: ✅ Ja – bitte Bring! oder Rücksprache.'
+              action: '{{ benachrichtigung_empfaenger }}'
+        - conditions:
+            - condition: template
+              value_template: "{{ antwort == 'lidl_no' }}"
+          sequence:
+            - data:
+                title: "\U0001F44D Keine Wünsche"
+                message: 'Antwort: ❌ Nein – alles gut.'
+              action: '{{ benachrichtigung_empfaenger }}'
+        - conditions:
+            - condition: template
+              value_template: "{{ antwort not in ['lidl_yes', 'lidl_no'] }}"
+          sequence:
+            - data:
+                title: ⚠️ Unbekannte Antwort
+                message: 'Es wurde eine unbekannte Aktion empfangen: {{ antwort }}'
+              action: persistent_notification.create
+    - data:
+        message: clear_notification
+        data:
+          tag: lidl_info
+      action: notify.mobile_app_{{ trigger.event.context.user_id }}
+  mode: single
+  variables:
+    antwort: '{{ trigger.event.data.action | lower }}'
+    zielperson: "{{ states('input_text.lidl_beim_einkauf') | lower }}"
+    antwortender_user: '{{ trigger.event.context.user_id }}'
+    benachrichtigung_empfaenger: "{% if zielperson == 'sylvie' %}\n  notify.mobile_app_sm_g975f\n{%
+      elif zielperson == 'matthias' %}\n  notify.mobile_app_s21_jt4yf9t106\n{% else
+      %}\n  none\n{% endif %}\n"
+- id: '1750371929327'
+  alias: Begrüßung bei Heimkehr (v4.4.0)
+  description: 'Begrüßt ankommende Personen per Alexa. Erkennt Anwesenheit anderer,
+    Feiertage, Müllabfuhr, passt Lautstärke an, loggt in Systemlog & Logbuch. Robuste
+    Struktur.
+
+    '
+  triggers:
+    - entity_id:
+        - sensor.home_matthias_fahrtrichtung
+        - sensor.home_sylvie_fahrtrichtung
+      from: towards
+      to: arrived
+      for: 00:00:30
+      trigger: state
+    - entity_id:
+        - person.matthias
+        - person.sylvie
+      to: home
+      for: 00:00:00
+      trigger: state
+  conditions:
+    - condition: state
+      entity_id: input_boolean.notify_enable_wellcome_home
+      state: 'on'
+    - condition: state
+      entity_id: schedule.zeitplan_benachrichtigungen
+      state: 'on'
+  actions:
+    - variables:
+        person_name: "{% if 'sylvie' in trigger.entity_id %} Sylvie {% elif 'matthias'
+          in trigger.entity_id %} Matthias {% else %} Jemand {% endif %}
+
+          "
+        other_person: "{% if person_name == 'Sylvie' %} person.matthias {% elif person_name
+          == 'Matthias' %} person.sylvie {% else %} unknown {% endif %}
+
+          "
+        arrival_time: "{% if other_person != 'unknown' and is_state(other_person, 'home')
+          %}\n  {% set diff = (now() - states[other_person].last_changed).total_seconds()
+          %}\n  {% if diff < 14400 %}\n    {% set h = (diff // 3600) | int %}\n    {%
+          set m = ((diff % 3600) // 60) | int %}\n    {% if h > 0 %} {{ h }} Stunden
+          und {{ m }} Minuten\n    {% else %} {{ m }} Minuten {% endif %}\n  {% else
+          %} länger als 4 Stunden {% endif %}\n{% else %} unbekannt {% endif %}\n"
+        time_of_day: '{% set h = now().hour %} {% if 5 <= h < 12 %} Guten Morgen {%
+          elif 12 <= h < 18 %} Guten Nachmittag {% else %} Guten Abend {% endif %}
+
+          '
+        emotion_tag: "{% set w = now().weekday() %} {% if is_state('calendar.feiertage_bw',
+          'on') %} excited {% elif w == 0 %} disappointed {% elif w in [1,2,3] %}
+          neutral {% else %} excited {% endif %}
+
+          "
+        emotion_intensity: "{% if emotion_tag == 'excited' %} medium {% elif emotion_tag
+          == 'disappointed' %} low {% else %} medium {% endif %}
+
+          "
+        weekday_greeting: '{% set wd = now().weekday() %} {% if wd == 0 %} Einen guten
+          Start in die Woche! {% elif wd == 4 %} Bald ist Wochenende! {% elif wd ==
+          5 %} Schönes Wochenende! {% elif wd == 6 %} Einen entspannten Sonntag! {%
+          else %} Willkommen zuhause! {% endif %}
+
+          '
+        feiertag_heute: "{% if is_state('calendar.feiertage_bw', 'on') %}\n  {{ state_attr('calendar.feiertage_bw',
+          'message') }}\n{% else %} {% endif %}\n"
+        feiertag_morgen: "{% set morgen = now().date() + timedelta(days=1) %} {% set
+          events = state_attr('calendar.feiertage_bw', 'all_events') %} {% if events
+          %}\n  {% for ev in events %}\n    {% if ev.start.date() == morgen %}\n      {{
+          ev.summary }}\n    {% endif %}\n  {% endfor %}\n{% endif %}\n"
+        begruessung_satz: "{% set sätze = [\n  \"Schön, dass du da bist.\",\n  \"Willkommen
+          zurück.\",\n  \"Ich hoffe, du hattest einen angenehmen Tag.\",\n  \"Wie schön,
+          dass du wieder zuhause bist.\",\n  \"Ich freu mich, dass du da bist!\"\n]
+          %} {{ sätze | random }}\n"
+        alexa_volume: '{% set h = now().hour %} {% if 7 <= h < 9 %} 0.3 {% elif 9 <=
+          h < 20 %} 0.6 {% else %} 0.4 {% endif %}
+
+          '
+    - delay: 00:04:00
+    - data:
+        entity_id: media_player.eg_gang
+        volume_level: '{{ alexa_volume | float(0.5) }}'
+      action: media_player.volume_set
+    - data:
+        message: "<speak>\n  <amazon:emotion name=\"{{ emotion_tag }}\" intensity=\"{{
+          emotion_intensity }}\">\n    {{ time_of_day }}, {{ person_name }}! {{ begruessung_satz
+          }}\n  </amazon:emotion>\n  {% if arrival_time not in ['unbekannt', 'länger
+          als 4 Stunden'] %}\n    <break time=\"1s\"/> Die andere Person kam vor {{
+          arrival_time }}.\n  {% endif %}\n  {% if feiertag_heute %} <break time=\"1s\"/>
+          Heute ist {{ feiertag_heute }}.\n  {% elif feiertag_morgen %} <break time=\"1s\"/>
+          Morgen ist {{ feiertag_morgen }}.\n  {% else %} <break time=\"1s\"/> {{ weekday_greeting
+          }}\n  {% endif %}\n</speak>\n"
+        data:
+          type: tts
+      action: notify.alexa_media_eg_gang
+    - choose:
+        - conditions:
+            - condition: numeric_state
+              entity_id: sensor.abfallnaechster
+              below: 2
+            - condition: template
+              value_template: "{{ states('sensor.abfallnaechstertype') | length > 0 }}"
+          sequence:
+            - data:
+                message: "<speak>\n  <amazon:emotion name=\"neutral\" intensity=\"medium\">\n
+                  \   Es steht Müllabfuhr an: {{ states('sensor.abfallnaechstertype') }}\n
+                  \   in {{ states('sensor.abfallnaechster') }} Tag(en).\n  </amazon:emotion>\n</speak>\n"
+                data:
+                  type: tts
+              action: notify.alexa_media_eg_gang
+    - data:
+        name: Begrüßung
+        entity_id: automation.begruessung_bei_heimkehr
+        message: "{{ person_name }} wurde begrüßt mit {{ emotion_tag }} ({{ emotion_intensity
+          }}), Lautstärke: {{ alexa_volume }}. Feiertag heute: {{ feiertag_heute or
+          '–' }}, morgen: {{ feiertag_morgen or '–' }}.
+
+          "
+      action: logbook.log
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: input_boolean.debugging_modus
+              state: 'on'
+          sequence:
+            - data:
+                level: info
+                message: 'Begrüßung ausgelöst für {{ person_name }}. Andere kam vor {{ arrival_time
+                  }}. Emotion: {{ emotion_tag }} ({{ emotion_intensity }}), Feiertag heute:
+                  {{ feiertag_heute }}, morgen: {{ feiertag_morgen }}.
+
+                  '
+              action: system_log.write
+  mode: restart
+- id: '1750625469019'
+  alias: Fahrzeugstatus & Auto-Verriegelung nach Heimkehr (v4.2.0)
+  description: 'Prüft nach 10 Minuten zuhause den Status beider Fahrzeuge (V-Klasse
+    & GLA), verriegelt automatisch bei Bedarf mit Retry, TTS und Log.
+
+    '
+  triggers:
+    - entity_id:
+        - person.matthias
+        - person.sylvie
+      to: home
+      for: 00:10:00
+      trigger: state
+  conditions:
+    - condition: time
+      after: 07:00:00
+      before: '23:00:00'
+    - condition: state
+      entity_id: input_boolean.notify_enable_wellcome_home
+      state: 'on'
+  actions:
+    - data:
+        message: "<speak>\n  {% if not abgeschlossen_vklasse %}\n    Die V-Klasse ist
+          noch nicht abgeschlossen.\n    {% if fensterstatus_vklasse != 'geschlossen'
+          or tuerstatus_vklasse != 'geschlossen' %}\n      Achtung: Fenster oder Türen
+          sind noch offen.\n    {% endif %}\n  {% endif %}\n  {% if not abgeschlossen_gla
+          %}\n    Auch der GLA ist noch offen.\n  {% endif %}\n  {% if wm_status in
+          ['läuft', 'fertig'] %}\n    Die Waschmaschine ist aktuell auf: {{ wm_status
+          }}.\n  {% endif %}\n  {% if tr_status in ['läuft', 'fertig'] %}\n    Der Trockner
+          meldet: {{ tr_status }}.\n  {% endif %}\n</speak>\n"
+        data:
+          type: announce
+          method: speak
+      action: notify.alexa_media_echo_gang_eg
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: sensor.bl_bo_2222_lock
+              state: unlocked
+            - condition: state
+              entity_id: sensor.bl_b02222_door_allclosed
+              state: geschlossen
+            - condition: state
+              entity_id: sensor.bl_b02222_window_allclosed
+              state: geschlossen
+          sequence:
+            - repeat:
+                count: 3
+                sequence:
+                  - data:
+                      entity_id: lock.bl_bo_2222_lock
+                      code: 7661
+                    action: lock.lock
+                  - delay: 00:00:20
+                  - choose:
+                      - conditions:
+                          - condition: state
+                            entity_id: lock.ac5340870c08e2b5b1ef4037357d1776
+                            state: locked
+                        sequence:
+                          - stop: V-Klasse verriegelt.
+            - data:
+                title: V-Klasse automatisch verriegelt
+                message: Die V-Klasse wurde 10 Minuten nach Heimkehr automatisch abgeschlossen.
+              action: notify.mobile_app_s21_jt4yf9t106
+            - data:
+                message: "<speak>\n  Die V-Klasse wurde automatisch abgeschlossen.\n</speak>\n"
+                data:
+                  type: announce
+              action: notify.alexa_media_echo_gang_eg
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: sensor.bb_sp_219_e_lock
+              state: unlocked
+          sequence:
+            - repeat:
+                count: 3
+                sequence:
+                  - data: 7661
+                    entity_id: lock.bb_sp_219_e_lock
+                    action: lock.lock
+                  - delay: 00:00:20
+                  - choose:
+                      - conditions:
+                          - condition: state
+                            entity_id: lock.gla_fzg_lock
+                            state: locked
+                        sequence:
+                          - stop: GLA verriegelt.
+            - data:
+                title: GLA automatisch verriegelt
+                message: Der GLA wurde automatisch abgeschlossen.
+              action: notify.mobile_app_s21_jt4yf9t106
+            - data:
+                message: "<speak>\n  Auch der GLA wurde automatisch abgeschlossen.\n</speak>\n"
+                data:
+                  type: announce
+              action: notify.alexa_media_echo_gang_eg
+    - data:
+        name: Auto-Verriegelung
+        entity_id: automation.fahrzeugstatus_auto_verriegelung_nach_heimkehr
+        message: '{{ person_name }} zuhause. V-Klasse abgeschlossen: {{ abgeschlossen_vklasse
+          }}, GLA abgeschlossen: {{ abgeschlossen_gla }}, Fenster: {{ fensterstatus_vklasse
+          }}, Türen: {{ tuerstatus_vklasse }}, Waschmaschine: {{ wm_status }}, Trockner:
+          {{ tr_status }}
+
+          '
+      action: logbook.log
+  variables:
+    person_name: "{% if trigger.entity_id == 'person.matthias' %} Matthias {% elif
+      trigger.entity_id == 'person.sylvie' %} Sylvie {% else %} Jemand {% endif
+      %}
+
+      "
+    fensterstatus_vklasse: "{{ states('sensor.bl_b02222_window_allclosed') }}"
+    tuerstatus_vklasse: "{{ states('sensor.bl_b02222_door_allclosed') }}"
+    abgeschlossen_vklasse: "{{ is_state('lock.ac5340870c08e2b5b1ef4037357d1776',
+      'locked') }}"
+    abgeschlossen_gla: "{{ is_state('lock.gla_fzg_lock', 'locked') }}"
+    wm_status: "{{ states('sensor.waschmaschine_status') }}"
+    tr_status: "{{ states('sensor.trockner_status') }}"
+  mode: single
+- id: '1752925789034'
+  alias: 'Roborock Wasserstand '
+  description: ''
+  triggers:
+    - type: problem
+      device_id: be6d9b7dbdfde93a8c491c3eb0817ecd
+      entity_id: ceb035388e6c0e66f42164b7f8cb273c
+      domain: binary_sensor
+      trigger: device
+      for:
+        hours: 0
+        minutes: 5
+        seconds: 0
+  conditions: []
+  actions:
+    - action: notify.alexa_media_erdgeschoss
+      metadata: {}
+      data:
+        message: 'Bitte Wassertank füllen '
+    - action: notify.alexa_media_eg_gang
+      metadata: {}
+      data:
+        message: 'Test  hallo Test '
+        data:
+          type: tts
+    - action: notify.alexa_media_matthias_echo_pop
+      metadata: {}
+      data:
+        message: 'Wohnzimmer '
+        data:
+          type: tts
+  mode: single
+- id: '1752927710825'
+  alias: 'EQB abschließen '
+  description: ''
+  triggers:
+    - device_id: dc75b83ef8717e7d5d2f33f66925d850
+      domain: lock
+      entity_id: cdc77ef72f1e56aae5e8d2297d17d1d3
+      type: open
+      trigger: device
+      for:
+        hours: 0
+        minutes: 10
+        seconds: 0
+  conditions:
+    - condition: device
+      device_id: dc75b83ef8717e7d5d2f33f66925d850
+      domain: device_tracker
+      entity_id: 54af74b43edcda7f43dddc76ea799e0b
+      type: is_home
+  actions:
+    - device_id: dc75b83ef8717e7d5d2f33f66925d850
+      domain: lock
+      entity_id: cdc77ef72f1e56aae5e8d2297d17d1d3
+      type: lock
+    - action: notify.mobile_app_s21_jt4yf9t106
+      metadata: {}
+      data:
+        message: 'EQB wurde Zuhause abgeschlossen '
+        title: EQB Infomation
+  mode: single
+- id: '1752927918363'
+  alias: New automation
+  description: ''
+  triggers:
+    - type: battery_level
+      device_id: dc75b83ef8717e7d5d2f33f66925d850
+      entity_id: f016dd2bb48ae3c12e3fbbc7388ef3d3
+      domain: sensor
+      trigger: device
+      below: 20
+      for:
+        hours: 0
+        minutes: 5
+        seconds: 0
+  conditions:
+    - condition: device
+      device_id: dc75b83ef8717e7d5d2f33f66925d850
+      domain: device_tracker
+      entity_id: 54af74b43edcda7f43dddc76ea799e0b
+      type: is_home
+  actions: []
+  mode: single

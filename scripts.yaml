@@ -1,0 +1,168 @@
+vacuum_gang:
+  sequence:
+    - service: xiaomi_miio.vacuum_clean_zone
+      data:
+        zone:
+          - - 25673
+            - 27715
+            - 28049
+            - 30491
+        repeats: 1
+      target:
+        entity_id: vacuum.helene_wischer
+  mode: single
+  alias: 'Vacuum: Gang'
+vacuum_hundezimmer:
+  alias: 'Vacuum: Hundezimmer'
+  sequence:
+    - service: xiaomi_miio.vacuum_clean_zone
+      data:
+        zone:
+          - - 24802
+            - 30574
+            - 28857
+            - 34655
+        repeats: 1
+      target:
+        entity_id: vacuum.helene_wischer
+  mode: single
+vacuum_bad:
+  alias: 'Vacuum: Bad'
+  sequence:
+    - service: xiaomi_miio.vacuum_clean_zone
+      data:
+        zone:
+          - - 25673
+            - 27715
+            - 28949
+            - 30491
+        repeats: 1
+      target:
+        entity_id: vacuum.helene_wischer
+  mode: single
+vacuum_esszimmer:
+  alias: 'Vacuum: Esszimmer'
+  sequence:
+    - service: xiaomi_miio.vacuum_clean_zone
+      data:
+        zone:
+          - - 31231
+            - 27311
+            - 34535
+            - 3069591
+        repeats: 1
+      target:
+        entity_id: vacuum.helene_wischer
+  mode: single
+vacuum_wohnzimmer:
+  alias: 'Vacuum: Wohnzimmer'
+  sequence:
+    - service: xiaomi_miio.vacuum_clean_zone
+      data:
+        zone:
+          - - 29677
+            - 30619
+            - 34472
+            - 34438
+        repeats: 1
+      target:
+        entity_id: vacuum.helene_wischer
+  mode: single
+vacuum_schalfzimmer:
+  alias: 'Vacuum: Schlafzimmer'
+  sequence:
+    - service: xiaomi_miio.vacuum_clean_zone
+      data:
+        zone:
+          - - 31418
+            - 22898
+            - 34597
+            - 26282
+        repeats: 1
+      target:
+        entity_id: vacuum.helene_wischer
+  mode: single
+activate_work_time:
+  alias: Activate Work time
+  sequence:
+    - service: input_select.select_option
+      data:
+        option: Work
+      target:
+        entity_id: input_select.studio_mode
+  mode: single
+activate_film_time:
+  alias: Activate Film Time
+  sequence:
+    - service: input_select.select_option
+      data:
+        option: Film
+      target:
+        entity_id: input_select.studio_mode
+  mode: single
+dynamic_greeting:
+  alias: dynamic_greeting
+  sequence:
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: sun.sun
+              state: above_horizon
+          sequence:
+            - service: notify.alexa_media_echo_gang_eg
+              data_template:
+                message: "{% set season = now().strftime('%m')|int %}\n    {% set greeting
+                  = \"Guten Tag\" %}\n    {% if season in [3, 4, 5] %}\n      {% set greeting
+                  = greeting + \", genieße den schönen Frühling.\" %}\n    {% elif season
+                  in [6, 7, 8] %}\n      {% set greeting = greeting + \", genieße den warmen
+                  Sommer.\" %}\n    {% elif season in [8, 9, 10] %}\n      {% set greeting
+                  = greeting + \", genieße den farbenfrohen Herbst.\" %}\n    {% else %}\n
+                  \     {% set greeting = greeting + \", genieße den gemütlichen Winter.\"
+                  %}\n    {% endif %}\n    {{ greeting }}\n"
+        - conditions:
+            - condition: state
+              entity_id: sun.sun
+              state: below_horizon
+          sequence:
+            - service: notify.alexa_media_echo_gang_eg
+              data_template:
+                message: Gute Nacht. Schlafe gut und träume süß.
+  mode: single
+'1707495530894':
+  alias: dynamische_begruessung_alexa
+  sequence:
+    - service: notify.alexa_media_echo_gang_eg
+      data_template:
+        message: "{% set hour = now().hour %} {% set season = now().strftime('%m')|int
+          %} {% set greeting = \"Hallo \" + person %} {% if hour < 12 %}\n  {% set time_part
+          = \"Guten Morgen\" %}\n{% elif hour < 18 %}\n  {% set time_part = \"Guten
+          Tag\" %}\n{% else %}\n  {% set time_part = \"Guten Abend\" %}\n{% endif %}
+          {% if season in [3, 4, 5] %}\n  {% set season_part = \", genieße den schönen
+          Frühling.\" %}\n{% elif season in [6, 7, 8] %}\n  {% set season_part = \",
+          genieße den warmen Sommer.\" %}\n{% elif season in [ 9, 10, 11] %}\n  {% set
+          season_part = \", genieße den farbenfrohen Herbst.\" %}\n{% else %}\n  {%
+          set season_part = \", genieße den gemütlichen Winter.\" %}\n{% endif %} {{
+          greeting + \", \" + time_part + season_part }}"
+  fields:
+    person:
+      name: Person
+      description: Namen der Person die begruesst wird
+confirmable_test:
+  alias: Confirmable test
+  use_blueprint:
+    path: homeassistant/confirmable_notification.yaml
+    input:
+      notify_device: 4428c0a3993c13006dbcd260b4679e6d
+      title: Testv
+      message: 'Bitte bestätigen '
+      confirm_action:
+        - action: notify.mobile_app_xiaomi_pad5
+          metadata: {}
+          data:
+            message: Confimed
+      dismiss_action:
+        - action: notify.mobile_app_xiaomi_pad5
+          metadata: {}
+          data:
+            message: Dissmissed
+  description: ''

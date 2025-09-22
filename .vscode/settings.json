@@ -1,0 +1,103 @@
+{
+  // Editor-Grundeinstellungen
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.detectIndentation": false,
+  "editor.wordWrap": "on",
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": true,
+  "editor.formatOnSaveMode": "modifications", // nur geänderte Zeilen beim Speichern formatieren
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit"
+  },
+  "editor.quickSuggestions": {
+    "other": true,
+    "comments": false,
+    "strings": true
+  },
+  "editor.rulers": [80, 120], // Hilfslinien für max. Zeilenlänge
+  "editor.renderWhitespace": "all",
+  "editor.renderControlCharacters": true,
+  "editor.minimap.enabled": false,
+
+  // Whitespace und Newline-Korrektur
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "files.eol": "\n",
+
+  // Explorer & Suche
+  "files.exclude": {
+    "**/.git": true,
+    "**/.vscode": false,
+    "**/*.log": true,
+    "**/deps": true,
+    "**/__pycache__": true,
+    "**/node_modules": true
+  },
+  "search.exclude": {
+    "**/deps": true,
+    "**/node_modules": true,
+    "**/__pycache__": true
+  },
+  "explorer.compactFolders": false,
+  "explorer.confirmDelete": false,
+  "explorer.confirmDragAndDrop": false,
+
+  // Git & Source Control
+  "git.autofetch": true,
+
+  // YAML: Prettier als Formatter, Validierung & Schemas
+  "[yaml]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.tabSize": 2
+  },
+  "yaml.format.enable": false, // Prettier übernimmt die Formatierung!
+  "yaml.validate": true,
+  "yaml.completion": true,
+  "yaml.hover": true,
+  "yaml.schemaStore.enable": true,
+  "yaml.maxItemsComputed": 10000,
+  "yaml.schemas": {
+    "https://json.schemastore.org/github-workflow.json": "/.github/workflows/*",
+    "https://schemas.home-assistant.io/1.0.0/configuration.yaml": [
+      "/configuration.yaml",
+      "/includes/*.yaml",
+      "/packages/**/*.yaml"
+    ]
+  },
+  "yaml.customTags": [
+    "!include",
+    "!include_dir_merge_named",
+    "!include_dir_merge_list",
+    "!include_dir_list",
+    "!secret"
+  ],
+
+  // Home Assistant Extension Settings
+  "home-assistant.hass.config.folder": "${workspaceFolder}",
+  "home-assistant.hass.languageServer.enable": true,
+  "home-assistant.hass.languageServer.trace.server": "off",
+  "home-assistant.hass.dev.container": false,
+
+  // Prettier Formatter Settings (wichtig für Konsistenz)
+  "prettier.singleQuote": true,
+  "prettier.tabWidth": 2,
+  "prettier.useTabs": false,
+  "prettier.endOfLine": "lf",
+
+  // Rechtschreibprüfung
+  "cSpell.language": "de,en",
+  "cSpell.words": ["homeassistant"],
+
+  // Sonstiges/Optisch
+  "breadcrumbs.enabled": true,
+  "workbench.colorTheme": "Default Light Modern",
+  "workbench.iconTheme": "material-icon-theme",
+  "workbench.startupEditor": "newUntitledFile",
+
+  // Dateizuordnungen
+  "files.associations": {
+    "*.j2": "jinja"
+  }
+}

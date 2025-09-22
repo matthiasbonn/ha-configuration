@@ -1,0 +1,61 @@
+light:
+  - platform: group
+    name: Wohnzimmerlichter
+    entities:
+      - light.stehlampe1_1
+      - light.stehlampe1_2
+      - light.stehlampe1_3
+
+  - platform: group
+    name: Kuechenlicht
+    entities:
+      - light.kuechenlicht1
+      - light.kuechenlicht2
+      - light.kuechenlicht3
+      - light.kuechenlicht4
+      - light.kuechenlicht5
+
+  - platform: group
+    name: Schlafzimmerlicht
+    entities:
+      - light.schlafzimmer_2
+
+  - platform: group
+    name: LichterEG
+    entities:
+      - light.Schlafzimmerlicht
+      - light.Ganglicht
+      - light.Kuchenlicht
+      - light.Wohnzimmerlichter
+
+  - platform: group
+    name: Ganglicht
+    entities:
+      - light.light
+      - light.light_2
+      - light.light3
+      - light.light_4
+
+switch:
+  - platform: template
+    switches:
+      all_lights_eg:
+        friendly_name: 'Alle Lichter EG'
+        value_template: >
+          {{ is_state('light.lightseg', 'on')}}
+        turn_on:
+          service: light.turn_on
+          target:
+            entity_id:
+              - light.wohnzimmerlichter
+              - light.kuechenlicht
+              - light.schlafzimmerlicht
+              - light.ganglicht
+        turn_off:
+          service: light.turn_off
+          target:
+            entity_id:
+              - light.wohnzimmerlichter
+              - light.kuechenlicht
+              - light.schlafzimmerlicht
+              - light.ganglicht

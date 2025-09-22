@@ -1,0 +1,190 @@
+###############################################################################
+#   @author         :   MAtthias Bonn
+#   @date           :   15/06/2023
+#   @package        :   Notify
+#   @description    :   A Collection of Notification Scripts and Configs.
+#                       Package modified from https://github.com/skalavala/smarthome/blob/master/packages/notify.yaml with inspiration
+# 		                  from https://github.com/CCOSTAN/Home-AssistantConfig/blob/master/config/script/speech_engine.yaml
+###############################################################################
+notify:
+  - name: all_mobile_device
+    platform: group
+    services:
+      - service: mobile_app_sm_t825
+      - service: mobile_app_s21_jt4yf9t106
+  - name: all_ios_devices
+    platform: group
+    services:
+      - service: mobile_app_s21_jt4yf9t106
+  - name: parents_mobile
+    platform: group
+    services:
+      - service: mobile_app_s21_jt4yf9t106
+      - service: mobile_app_sm_t825
+  - name: matthias_ios
+    platform: group
+    services:
+      - service: mobile_app_s21_jt4yf9t106
+  - name: matthias_mobile
+    platform: group
+    services:
+      - service: mobile_app_s21_jt4yf9t106
+      - service: mobile_app_xiaomi_pad5
+  - name: sylvie_mobile
+    platform: group
+    services:
+      - service: mobile_app_sm_g975f
+      - service: mobile_app_sm_t825
+  - name: alexa_eg
+    platform: group
+    services:
+      - service: alexa_media_echo_gang_eg
+      - service: alexa_media_matthias_2_echo_pop
+
+script:
+  ###############################################################################
+  # Txt Notify
+  ###############################################################################
+  text_notify_all:
+    sequence:
+      - service: notify.all_ios
+        data_template:
+          message: >
+            {{ message }}
+
+  text_debug:
+    sequence:
+      - condition: state
+        entity_id: input_boolean.debug_texts
+        state: 'on'
+      - service: notify.matthias_ios
+        data_template:
+          message: >
+            {{ message }}
+
+  text_notify_matthias:
+    sequence:
+      - condition: state
+        entity_id: input_boolean.text_notify_matthias
+        state: 'on'
+      - service: notify.matthias_ios
+        data_template:
+          message: >
+            {{ message }}
+
+  text_notify_sylvie:
+    sequence:
+      - condition: state
+        entity_id: input_boolean.text_notify_sylvie
+        state: 'on'
+      - service: notify.sylvie_mobile
+        data_template:
+          message: >
+            {{ message }}
+
+  text_notify:
+    sequence:
+      - condition: state
+        entity_id: input_boolean.text_notifications
+        state: 'on'
+      - choose:
+          - conditions:
+              - condition: template
+                value_template: '{{ who == "matthias"}}'
+              - condition: state
+                entity_id: input_boolean.text_notify_matthias
+                state: 'on'
+            sequence:
+              - service: notify.matthias_ios
+                data:
+                  title: '{{ title }}'
+                  message: '{{ message }}'
+          - conditions:
+              - condition: template
+                value_template: '{{ who == "sylvie"}}'
+              - condition: state
+                entity_id: input_boolean.text_notify_sylvie
+                state: 'on'
+            sequence:
+              - service: notify.sylvie_mobile
+                data:
+                  title: '{{ title }}'
+                  message: '{{ message }}'
+          - conditions:
+              - condition: template
+                value_template: '{{ who == "cedric"}}'
+              - condition: state
+                entity_id: input_boolean.text_notify_cedric
+                state: 'on'
+            sequence:
+              - service: notify.cedric_mobile
+                data:
+                  title: '{{ title }}'
+                  message: '{{ message }}'
+          - conditions:
+              - condition: template
+                value_template: '{{ who == "parents"}}'
+              - condition: state
+                entity_id: input_boolean.text_notify_parents
+                state: 'on'
+            sequence:
+              - service: notify.parents_mobile
+                data:
+                  title: '{{ title }}'
+                  message: '{{ message }}'
+        default:
+          - service: notify.all_ios
+            data:
+              title: '{{ title }}'
+              message: '{{ message }}'
+
+  text_alert:
+    sequence:
+      - service: >
+          {% if who == 'matthias' %}
+            notify.matthias_ios
+          {% elif who == 'sylvie' %}
+            notify.sylvie_mobile
+          {% elif who == 'cedric' %}
+            notify.skylar_ios
+          {% elif who == 'parents' %}
+            notify.parents_mobile
+          {% else %}
+            notify.all_ios
+          {% endif %}
+        data:
+          title: '{{ title }}'
+          message: '{{ message }}'
+          #data:
+          #   attachment:
+          #     url: '{{ url }}'
+          #     content-type: '{{ content_type }}'
+          #     hide-thumbnail: false
+          #  push:
+          #     sound: '{{ ios_sound }}'
+          #    badge: 0
+          #     category: '{{ ios_category }}'
+          #   entity_id: '{{ camera_entity }}'
+
+  text_alert_image:
+    sequence:
+      - service: >
+          {% if who == 'matthias' %}
+            notify.matthias_ios
+          {% elif who == 'sylvie' %}
+            notify.sylvie_mobile
+          {% elif who == 'cedric' %}
+            notify.skylar_ios
+          {% elif who == 'parents' %}
+            notify.parents_mobile
+          {% else %}
+            notify.all_ios
+          {% endif %}
+        data:
+          title: '{{ title }}'
+          message: '{{ message }}'
+          data:
+            attachment:
+              url: '{{ url }}'
+              content-type: '{{ content_type }}'
+              hide-thumbnail: false

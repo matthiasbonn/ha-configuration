@@ -1,0 +1,83 @@
+###############################################################################
+# Home Assistant / VSCode .gitignore
+# Version: 1.0.0
+# Maintainer: <DEIN NAME/TEAM>
+#
+# HISTORY:
+# - 1.0.0 (2025-07-28): Initiale Version für HA + VSCode, optimiert für Teams,
+#                       Add-ons, HACS, Secrets, OS und Editor-spezifische Dateien.
+###############################################################################
+
+# Home Assistant Daten, temporäre und generierte Dateien
+.homeassistant/
+.storage/
+deps/
+*.db*
+*.log
+*.log.*
+*.pyc
+__pycache__/
+.cloud/
+integrations/
+tts/
+*.pid
+*yaml_old
+
+# Backups & Snapshots
+backup/
+backups/
+*.tar
+*.tar.gz
+
+# Secrets & Umgebungsvariablen
+secrets.yaml
+secrets/
+.env
+.env.*
+
+# HACS & Custom Components
+blueprints/
+custom_components/
+addons/
+image/
+themes/
+www/
+
+# Automatisch generierte UI-Dateien
+ui-lovelace.yaml.backup
+ui-lovelace.yaml.restore
+ui-lovelace.yaml.tmp
+
+# VSCode-Arbeitsdateien (nur Workspace-Dateien ignorieren)
+.vscode/*.code-workspace
+# Alle anderen Konfigs im .vscode-Ordner werden versioniert
+
+# Python virtual environments
+venv/
+ENV/
+env/
+.pip-wheel-metadata/
+
+# Sonstiges
+*.bak
+*.swp
+*.swo
+*.tmp
+
+# OS-spezifische Dateien
+.DS_Store
+ehthumbs.db
+Icon?
+desktop.ini
+
+# Node/JS (nur falls verwendet)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# IDE/Editor spezifische Dateien
+.idea/
+*.iml
+*.vscode-test/
